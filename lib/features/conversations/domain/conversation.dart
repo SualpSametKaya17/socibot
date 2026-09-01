@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../core/constants/channel_type.dart';
 import 'conversation_status.dart';
+import 'message_direction.dart';
 
 part 'conversation.freezed.dart';
 
@@ -24,5 +25,9 @@ sealed class Conversation with _$Conversation {
     // Mock-only for now — a real "assigned_to" column/UI lands in the
     // conversation-assignment stage. Null means unassigned.
     String? assignedAgentName,
+    // Denormalized from the message thread's last entry — lets the list
+    // derive "unreplied" (customer waiting on us) honestly, without a
+    // fake status the data model doesn't actually track.
+    MessageDirection? lastMessageDirection,
   }) = _Conversation;
 }

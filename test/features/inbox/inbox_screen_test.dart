@@ -133,6 +133,21 @@ void main() {
       expect(find.text('Marcus Chen'), findsNothing); // unassigned
     });
 
+    testWidgets('Unreplied toggle keeps only conversations awaiting a reply', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Unreplied'));
+      await tester.pumpAndSettle();
+
+      // Elena's last message is incoming (unreplied); Diego's last
+      // message is the agent's outgoing closing reply.
+      expect(find.text('Elena Martinez'), findsOneWidget);
+      expect(find.text('Diego Fernandez'), findsNothing);
+    });
+
     testWidgets('composer send button enables once text is entered', (
       tester,
     ) async {

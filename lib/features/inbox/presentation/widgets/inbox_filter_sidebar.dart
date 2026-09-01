@@ -127,6 +127,7 @@ class _SidebarRow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: AppRadius.mdAll,
+          hoverColor: colors.surfaceSecondary,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,

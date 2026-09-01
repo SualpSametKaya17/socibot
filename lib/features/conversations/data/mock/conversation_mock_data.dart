@@ -1,6 +1,7 @@
 import '../../../../core/constants/channel_type.dart';
 import '../../domain/conversation.dart';
 import '../../domain/conversation_status.dart';
+import '../../domain/message_direction.dart';
 
 /// The name used for "assigned to me" in the mock data / dev-bypass
 /// session — there's no real current-agent concept yet (that needs a
@@ -22,6 +23,7 @@ List<Conversation> buildMockConversations() {
       lastMessageAt: now.subtract(const Duration(minutes: 4)),
       unreadCount: 2,
       assignedAgentName: mockCurrentAgentName,
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '2',
@@ -31,24 +33,27 @@ List<Conversation> buildMockConversations() {
       lastMessagePreview: 'Can you send me a size chart?',
       lastMessageAt: now.subtract(const Duration(minutes: 32)),
       unreadCount: 1,
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '3',
       contactName: 'Priya Nair',
       channel: ChannelType.facebook,
       status: ConversationStatus.open,
-      lastMessagePreview: 'Thank you, that solved it!',
+      lastMessagePreview: "Of course — glad it's sorted now!",
       lastMessageAt: now.subtract(const Duration(hours: 2)),
       assignedAgentName: mockCurrentAgentName,
+      lastMessageDirection: MessageDirection.outgoing,
     ),
     Conversation(
       id: '4',
       contactName: 'Diego Fernandez',
       channel: ChannelType.whatsapp,
       status: ConversationStatus.resolved,
-      lastMessagePreview: 'Perfect, see you then.',
+      lastMessagePreview: "You're all set — thanks for your patience!",
       lastMessageAt: now.subtract(const Duration(hours: 5)),
       assignedAgentName: 'Sofia Reyes',
+      lastMessageDirection: MessageDirection.outgoing,
     ),
     Conversation(
       id: '5',
@@ -58,6 +63,7 @@ List<Conversation> buildMockConversations() {
       lastMessagePreview: 'Do you ship internationally?',
       lastMessageAt: now.subtract(const Duration(hours: 9)),
       unreadCount: 3,
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '6',
@@ -68,15 +74,17 @@ List<Conversation> buildMockConversations() {
       lastMessageAt: now.subtract(const Duration(hours: 14)),
       unreadCount: 1,
       assignedAgentName: mockCurrentAgentName,
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '7',
       contactName: "James O'Brien",
       channel: ChannelType.whatsapp,
       status: ConversationStatus.resolved,
-      lastMessagePreview: 'Appreciate the quick help, thanks!',
+      lastMessagePreview: 'Glad we could help — take care!',
       lastMessageAt: now.subtract(const Duration(days: 1, hours: 3)),
       assignedAgentName: 'Sofia Reyes',
+      lastMessageDirection: MessageDirection.outgoing,
     ),
     Conversation(
       id: '8',
@@ -85,6 +93,7 @@ List<Conversation> buildMockConversations() {
       status: ConversationStatus.open,
       lastMessagePreview: 'What colors does this come in?',
       lastMessageAt: now.subtract(const Duration(days: 2)),
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '9',
@@ -94,6 +103,7 @@ List<Conversation> buildMockConversations() {
       lastMessagePreview: 'Can I change my delivery address?',
       lastMessageAt: now.subtract(const Duration(days: 2, hours: 6)),
       unreadCount: 1,
+      lastMessageDirection: MessageDirection.incoming,
     ),
     Conversation(
       id: '10',
@@ -103,6 +113,7 @@ List<Conversation> buildMockConversations() {
       lastMessagePreview: 'Still waiting on a reply about my invoice.',
       lastMessageAt: now.subtract(const Duration(days: 3)),
       assignedAgentName: mockCurrentAgentName,
+      lastMessageDirection: MessageDirection.incoming,
     ),
   ];
 }

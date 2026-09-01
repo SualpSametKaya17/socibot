@@ -5,6 +5,7 @@ import '../data/conversation_repository.dart';
 import '../data/mock/conversation_mock_data.dart';
 import 'conversation.dart';
 import 'conversation_status.dart';
+import 'message_direction.dart';
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
   return MockConversationRepository();
@@ -27,6 +28,12 @@ final selectedConversationIdProvider = StateProvider<String?>((ref) => null);
 
 /// `true` = newest first (default), `false` = oldest first.
 final inboxSortNewestFirstProvider = StateProvider<bool>((ref) => true);
+
+/// When on, only shows conversations whose last message is incoming —
+/// i.e. the customer is waiting on a reply. Derived from the real
+/// [Conversation.lastMessageDirection] field rather than a status the
+/// data model doesn't actually track.
+final inboxUnrepliedOnlyProvider = StateProvider<bool>((ref) => false);
 
 /// [conversationsProvider] narrowed by the quick filter, status filter, and
 /// search query — in that order — newest first. Note this does *not*
@@ -66,9 +73,10 @@ final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
   final scoped = ref.watch(_quickAndStatusFilteredProvider);
   final query = ref.watch(inboxSearchQueryProvider).trim().toLowerCase();
   final newestFirst = ref.watch(inboxSortNewestFirstProvider);
+  final unrepliedOnly = ref.watch(inboxUnrepliedOnlyProvider);
 
   return scoped.whenData((conversations) {
-    final filtered = query.isEmpty
+    var filtered = query.isEmpty
         ? conversations
         : conversations.where((conversation) {
             final haystack =
@@ -76,6 +84,12 @@ final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
                     .toLowerCase();
             return haystack.contains(query);
           }).toList();
+
+    if (unrepliedOnly) {
+      filtered = filtered
+          .where((c) => c.lastMessageDirection == MessageDirection.incoming)
+          .toList();
+    }
 
     filtered.sort((a, b) {
       final aTime = a.lastMessageAt;

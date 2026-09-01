@@ -16,7 +16,10 @@ mixin _$Conversation {
 
  String get id; String get contactName; String? get contactAvatarUrl; ChannelType get channel; ConversationStatus get status; String? get lastMessagePreview; DateTime? get lastMessageAt; int get unreadCount;// Mock-only for now — a real "assigned_to" column/UI lands in the
 // conversation-assignment stage. Null means unassigned.
- String? get assignedAgentName;
+ String? get assignedAgentName;// Denormalized from the message thread's last entry — lets the list
+// derive "unreplied" (customer waiting on us) honestly, without a
+// fake status the data model doesn't actually track.
+ MessageDirection? get lastMessageDirection;
 /// Create a copy of Conversation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,16 +30,16 @@ $ConversationCopyWith<Conversation> get copyWith => _$ConversationCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Conversation&&(identical(other.id, id) || other.id == id)&&(identical(other.contactName, contactName) || other.contactName == contactName)&&(identical(other.contactAvatarUrl, contactAvatarUrl) || other.contactAvatarUrl == contactAvatarUrl)&&(identical(other.channel, channel) || other.channel == channel)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastMessagePreview, lastMessagePreview) || other.lastMessagePreview == lastMessagePreview)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.assignedAgentName, assignedAgentName) || other.assignedAgentName == assignedAgentName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Conversation&&(identical(other.id, id) || other.id == id)&&(identical(other.contactName, contactName) || other.contactName == contactName)&&(identical(other.contactAvatarUrl, contactAvatarUrl) || other.contactAvatarUrl == contactAvatarUrl)&&(identical(other.channel, channel) || other.channel == channel)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastMessagePreview, lastMessagePreview) || other.lastMessagePreview == lastMessagePreview)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.assignedAgentName, assignedAgentName) || other.assignedAgentName == assignedAgentName)&&(identical(other.lastMessageDirection, lastMessageDirection) || other.lastMessageDirection == lastMessageDirection));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,contactName,contactAvatarUrl,channel,status,lastMessagePreview,lastMessageAt,unreadCount,assignedAgentName);
+int get hashCode => Object.hash(runtimeType,id,contactName,contactAvatarUrl,channel,status,lastMessagePreview,lastMessageAt,unreadCount,assignedAgentName,lastMessageDirection);
 
 @override
 String toString() {
-  return 'Conversation(id: $id, contactName: $contactName, contactAvatarUrl: $contactAvatarUrl, channel: $channel, status: $status, lastMessagePreview: $lastMessagePreview, lastMessageAt: $lastMessageAt, unreadCount: $unreadCount, assignedAgentName: $assignedAgentName)';
+  return 'Conversation(id: $id, contactName: $contactName, contactAvatarUrl: $contactAvatarUrl, channel: $channel, status: $status, lastMessagePreview: $lastMessagePreview, lastMessageAt: $lastMessageAt, unreadCount: $unreadCount, assignedAgentName: $assignedAgentName, lastMessageDirection: $lastMessageDirection)';
 }
 
 
@@ -47,7 +50,7 @@ abstract mixin class $ConversationCopyWith<$Res>  {
   factory $ConversationCopyWith(Conversation value, $Res Function(Conversation) _then) = _$ConversationCopyWithImpl;
 @useResult
 $Res call({
- String id, String contactName, String? contactAvatarUrl, ChannelType channel, ConversationStatus status, String? lastMessagePreview, DateTime? lastMessageAt, int unreadCount, String? assignedAgentName
+ String id, String contactName, String? contactAvatarUrl, ChannelType channel, ConversationStatus status, String? lastMessagePreview, DateTime? lastMessageAt, int unreadCount, String? assignedAgentName, MessageDirection? lastMessageDirection
 });
 
 
@@ -64,7 +67,7 @@ class _$ConversationCopyWithImpl<$Res>
 
 /// Create a copy of Conversation
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? contactName = null,Object? contactAvatarUrl = freezed,Object? channel = null,Object? status = null,Object? lastMessagePreview = freezed,Object? lastMessageAt = freezed,Object? unreadCount = null,Object? assignedAgentName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? contactName = null,Object? contactAvatarUrl = freezed,Object? channel = null,Object? status = null,Object? lastMessagePreview = freezed,Object? lastMessageAt = freezed,Object? unreadCount = null,Object? assignedAgentName = freezed,Object? lastMessageDirection = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,contactName: null == contactName ? _self.contactName : contactName // ignore: cast_nullable_to_non_nullable
@@ -75,7 +78,8 @@ as ConversationStatus,lastMessagePreview: freezed == lastMessagePreview ? _self.
 as String?,lastMessageAt: freezed == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,assignedAgentName: freezed == assignedAgentName ? _self.assignedAgentName : assignedAgentName // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,lastMessageDirection: freezed == lastMessageDirection ? _self.lastMessageDirection : lastMessageDirection // ignore: cast_nullable_to_non_nullable
+as MessageDirection?,
   ));
 }
 
@@ -157,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName,  MessageDirection? lastMessageDirection)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Conversation() when $default != null:
-return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName);case _:
+return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName,_that.lastMessageDirection);case _:
   return orElse();
 
 }
@@ -178,10 +182,10 @@ return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName,  MessageDirection? lastMessageDirection)  $default,) {final _that = this;
 switch (_that) {
 case _Conversation():
-return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName);}
+return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName,_that.lastMessageDirection);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -195,10 +199,10 @@ return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String contactName,  String? contactAvatarUrl,  ChannelType channel,  ConversationStatus status,  String? lastMessagePreview,  DateTime? lastMessageAt,  int unreadCount,  String? assignedAgentName,  MessageDirection? lastMessageDirection)?  $default,) {final _that = this;
 switch (_that) {
 case _Conversation() when $default != null:
-return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName);case _:
+return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,_that.status,_that.lastMessagePreview,_that.lastMessageAt,_that.unreadCount,_that.assignedAgentName,_that.lastMessageDirection);case _:
   return null;
 
 }
@@ -210,7 +214,7 @@ return $default(_that.id,_that.contactName,_that.contactAvatarUrl,_that.channel,
 
 
 class _Conversation implements Conversation {
-  const _Conversation({required this.id, required this.contactName, this.contactAvatarUrl, required this.channel, required this.status, this.lastMessagePreview, this.lastMessageAt, this.unreadCount = 0, this.assignedAgentName});
+  const _Conversation({required this.id, required this.contactName, this.contactAvatarUrl, required this.channel, required this.status, this.lastMessagePreview, this.lastMessageAt, this.unreadCount = 0, this.assignedAgentName, this.lastMessageDirection});
   
 
 @override final  String id;
@@ -224,6 +228,10 @@ class _Conversation implements Conversation {
 // Mock-only for now — a real "assigned_to" column/UI lands in the
 // conversation-assignment stage. Null means unassigned.
 @override final  String? assignedAgentName;
+// Denormalized from the message thread's last entry — lets the list
+// derive "unreplied" (customer waiting on us) honestly, without a
+// fake status the data model doesn't actually track.
+@override final  MessageDirection? lastMessageDirection;
 
 /// Create a copy of Conversation
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +243,16 @@ _$ConversationCopyWith<_Conversation> get copyWith => __$ConversationCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Conversation&&(identical(other.id, id) || other.id == id)&&(identical(other.contactName, contactName) || other.contactName == contactName)&&(identical(other.contactAvatarUrl, contactAvatarUrl) || other.contactAvatarUrl == contactAvatarUrl)&&(identical(other.channel, channel) || other.channel == channel)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastMessagePreview, lastMessagePreview) || other.lastMessagePreview == lastMessagePreview)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.assignedAgentName, assignedAgentName) || other.assignedAgentName == assignedAgentName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Conversation&&(identical(other.id, id) || other.id == id)&&(identical(other.contactName, contactName) || other.contactName == contactName)&&(identical(other.contactAvatarUrl, contactAvatarUrl) || other.contactAvatarUrl == contactAvatarUrl)&&(identical(other.channel, channel) || other.channel == channel)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastMessagePreview, lastMessagePreview) || other.lastMessagePreview == lastMessagePreview)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.assignedAgentName, assignedAgentName) || other.assignedAgentName == assignedAgentName)&&(identical(other.lastMessageDirection, lastMessageDirection) || other.lastMessageDirection == lastMessageDirection));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,contactName,contactAvatarUrl,channel,status,lastMessagePreview,lastMessageAt,unreadCount,assignedAgentName);
+int get hashCode => Object.hash(runtimeType,id,contactName,contactAvatarUrl,channel,status,lastMessagePreview,lastMessageAt,unreadCount,assignedAgentName,lastMessageDirection);
 
 @override
 String toString() {
-  return 'Conversation(id: $id, contactName: $contactName, contactAvatarUrl: $contactAvatarUrl, channel: $channel, status: $status, lastMessagePreview: $lastMessagePreview, lastMessageAt: $lastMessageAt, unreadCount: $unreadCount, assignedAgentName: $assignedAgentName)';
+  return 'Conversation(id: $id, contactName: $contactName, contactAvatarUrl: $contactAvatarUrl, channel: $channel, status: $status, lastMessagePreview: $lastMessagePreview, lastMessageAt: $lastMessageAt, unreadCount: $unreadCount, assignedAgentName: $assignedAgentName, lastMessageDirection: $lastMessageDirection)';
 }
 
 
@@ -255,7 +263,7 @@ abstract mixin class _$ConversationCopyWith<$Res> implements $ConversationCopyWi
   factory _$ConversationCopyWith(_Conversation value, $Res Function(_Conversation) _then) = __$ConversationCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String contactName, String? contactAvatarUrl, ChannelType channel, ConversationStatus status, String? lastMessagePreview, DateTime? lastMessageAt, int unreadCount, String? assignedAgentName
+ String id, String contactName, String? contactAvatarUrl, ChannelType channel, ConversationStatus status, String? lastMessagePreview, DateTime? lastMessageAt, int unreadCount, String? assignedAgentName, MessageDirection? lastMessageDirection
 });
 
 
@@ -272,7 +280,7 @@ class __$ConversationCopyWithImpl<$Res>
 
 /// Create a copy of Conversation
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? contactName = null,Object? contactAvatarUrl = freezed,Object? channel = null,Object? status = null,Object? lastMessagePreview = freezed,Object? lastMessageAt = freezed,Object? unreadCount = null,Object? assignedAgentName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? contactName = null,Object? contactAvatarUrl = freezed,Object? channel = null,Object? status = null,Object? lastMessagePreview = freezed,Object? lastMessageAt = freezed,Object? unreadCount = null,Object? assignedAgentName = freezed,Object? lastMessageDirection = freezed,}) {
   return _then(_Conversation(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,contactName: null == contactName ? _self.contactName : contactName // ignore: cast_nullable_to_non_nullable
@@ -283,7 +291,8 @@ as ConversationStatus,lastMessagePreview: freezed == lastMessagePreview ? _self.
 as String?,lastMessageAt: freezed == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,assignedAgentName: freezed == assignedAgentName ? _self.assignedAgentName : assignedAgentName // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,lastMessageDirection: freezed == lastMessageDirection ? _self.lastMessageDirection : lastMessageDirection // ignore: cast_nullable_to_non_nullable
+as MessageDirection?,
   ));
 }
 

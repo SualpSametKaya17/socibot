@@ -13,6 +13,7 @@ import '../../core/widgets/responsive_layout.dart';
 import '../../core/widgets/status_badge.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_semantic_colors.dart';
+import '../theme/app_sizes.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'nav_destinations.dart';
@@ -35,21 +36,32 @@ class DesignPreviewScreen extends StatelessWidget {
       desktop: (context) => Scaffold(
         body: Row(
           children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: context.colors.sidebar,
-                border: Border(right: BorderSide(color: context.colors.border)),
-              ),
-              child: AppSidebar(
-                destinations: [
-                  for (final d in shellDestinations) d.toSidebarDestination(),
-                ],
-                selectedIndex: -1,
-                onDestinationSelected: (index) =>
-                    context.go(shellDestinations[index].path),
-                leading: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: Icon(Icons.forum_outlined),
+            SizedBox(
+              width: AppSizes.navRailWidth,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colors.sidebar,
+                  border: Border(
+                    right: BorderSide(color: context.colors.border),
+                  ),
+                ),
+                child: AppSidebar(
+                  destinations: [
+                    for (final d in shellDestinations) d.toSidebarDestination(),
+                  ],
+                  selectedIndex: -1,
+                  extended: false,
+                  onDestinationSelected: (index) =>
+                      context.go(shellDestinations[index].path),
+                  leading: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.lg,
+                    ),
+                    child: Icon(
+                      Icons.forum_outlined,
+                      color: context.colors.primary,
+                    ),
+                  ),
                 ),
               ),
             ),

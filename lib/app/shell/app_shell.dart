@@ -8,32 +8,25 @@ import '../../core/widgets/app_sidebar.dart';
 import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/auth/domain/auth_providers.dart';
-import '../../features/organization/domain/organization_providers.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_semantic_colors.dart';
+import '../theme/app_sizes.dart';
 import '../theme/app_spacing.dart';
 import 'nav_destinations.dart';
 
-/// Application chrome: a collapsible sidebar + top bar on desktop/web, a
-/// narrower (collapsed) sidebar on tablet, a drawer + top bar on mobile.
-/// Wraps GoRouter's [StatefulNavigationShell] so each destination keeps
-/// its own navigation state when switching tabs.
-class AppShell extends ConsumerStatefulWidget {
+/// Application chrome: a fixed-width, icon-only global nav rail + top bar
+/// on desktop/tablet, a drawer + top bar on mobile. Wraps GoRouter's
+/// [StatefulNavigationShell] so each destination keeps its own
+/// navigation state when switching tabs.
+class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  @override
-  ConsumerState<AppShell> createState() => _AppShellState();
-}
-
-class _AppShellState extends ConsumerState<AppShell> {
-  bool _sidebarExpanded = true;
-
   void _onDestinationSelected(int index) {
-    widget.navigationShell.goBranch(
+    navigationShell.goBranch(
       index,
-      initialLocation: index == widget.navigationShell.currentIndex,
+      initialLocation: index == navigationShell.currentIndex,
     );
   }
 
@@ -41,38 +34,28 @@ class _AppShellState extends ConsumerState<AppShell> {
   Widget build(BuildContext context) {
     return ResponsiveLayout(
       mobile: (context) => _MobileShell(
-        navigationShell: widget.navigationShell,
+        navigationShell: navigationShell,
         onDestinationSelected: _onDestinationSelected,
-      ),
-      tablet: (context) => _DesktopShell(
-        navigationShell: widget.navigationShell,
-        onDestinationSelected: _onDestinationSelected,
-        expanded: false,
-        onToggleExpanded: null,
       ),
       desktop: (context) => _DesktopShell(
-        navigationShell: widget.navigationShell,
+        navigationShell: navigationShell,
         onDestinationSelected: _onDestinationSelected,
-        expanded: _sidebarExpanded,
-        onToggleExpanded: () =>
-            setState(() => _sidebarExpanded = !_sidebarExpanded),
       ),
     );
   }
 }
 
+/// Desktop/tablet: a narrow (60px) icon-only rail — brand mark at top,
+/// destinations with tooltips, profile/account menu pinned to the
+/// bottom.
 class _DesktopShell extends StatelessWidget {
   const _DesktopShell({
     required this.navigationShell,
     required this.onDestinationSelected,
-    required this.expanded,
-    required this.onToggleExpanded,
   });
 
   final StatefulNavigationShell navigationShell;
   final ValueChanged<int> onDestinationSelected;
-  final bool expanded;
-  final VoidCallback? onToggleExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -82,21 +65,25 @@ class _DesktopShell extends StatelessWidget {
       body: Row(
         children: [
           _SidebarFrame(
+            width: AppSizes.navRailWidth,
             child: AppSidebar(
               destinations: [
                 for (final d in shellDestinations) d.toSidebarDestination(),
               ],
               selectedIndex: navigationShell.currentIndex,
               onDestinationSelected: onDestinationSelected,
-              extended: expanded,
-              leading: _SidebarHeader(
-                expanded: expanded,
-                onToggleExpanded: onToggleExpanded,
+              extended: false,
+              leading: const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: _BrandMark(),
               ),
-              trailing: Expanded(
+              trailing: const Expanded(
                 child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: _SidebarFooter(expanded: expanded),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    child: _SidebarFooter(expanded: false),
+                  ),
                 ),
               ),
             ),
@@ -139,11 +126,11 @@ class _MobileShell extends StatelessWidget {
             ],
             selectedIndex: navigationShell.currentIndex,
             extended: true,
-            leading: const _SidebarHeader(
-              expanded: true,
-              onToggleExpanded: null,
+            leading: const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: _BrandMark(),
             ),
-            trailing: Expanded(
+            trailing: const Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: _SidebarFooter(expanded: true),
@@ -161,95 +148,38 @@ class _MobileShell extends StatelessWidget {
   }
 }
 
-/// Paints the sidebar's background + subtle right border around whatever
-/// rail content is passed in, so [AppSidebar] itself stays a plain
-/// (undecorated) navigation component reusable outside the shell too.
-class _SidebarFrame extends StatelessWidget {
-  const _SidebarFrame({required this.child});
-
-  final Widget child;
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.sidebar,
-        border: Border(right: BorderSide(color: colors.border)),
-      ),
-      child: child,
+    return Tooltip(
+      message: 'Socibot',
+      child: Icon(Icons.forum_outlined, color: context.colors.primary),
     );
   }
 }
 
-/// Sidebar leading widget: brand mark, current organization name, and the
-/// desktop collapse/expand toggle (null on mobile/tablet, where there's
-/// no toggle).
-class _SidebarHeader extends ConsumerWidget {
-  const _SidebarHeader({
-    required this.expanded,
-    required this.onToggleExpanded,
-  });
+/// Paints the sidebar's background + subtle right border around whatever
+/// rail content is passed in, so [AppSidebar] itself stays a plain
+/// (undecorated) navigation component reusable outside the shell too.
+class _SidebarFrame extends StatelessWidget {
+  const _SidebarFrame({required this.child, this.width});
 
-  final bool expanded;
-  final VoidCallback? onToggleExpanded;
+  final Widget child;
+  final double? width;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final organization = ref.watch(currentOrganizationProvider);
-    final theme = Theme.of(context);
+  Widget build(BuildContext context) {
     final colors = context.colors;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.lg,
-        horizontal: AppSpacing.sm,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: expanded
-                ? MainAxisAlignment.spaceBetween
-                : MainAxisAlignment.center,
-            children: [
-              Icon(Icons.forum_outlined, color: colors.primary),
-              if (expanded && onToggleExpanded != null)
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: 'Collapse sidebar',
-                  onPressed: onToggleExpanded,
-                ),
-            ],
-          ),
-          if (!expanded && onToggleExpanded != null)
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              tooltip: 'Expand sidebar',
-              onPressed: onToggleExpanded,
-            ),
-          if (expanded) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: organization.when(
-                data: (org) => Text(
-                  org?.name ?? 'Socibot',
-                  style: theme.textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                loading: () => SizedBox(
-                  height: 14,
-                  width: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colors.primary,
-                  ),
-                ),
-                error: (error, stackTrace) => const Text('Socibot'),
-              ),
-            ),
-          ],
-        ],
+    return SizedBox(
+      width: width,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.sidebar,
+          border: Border(right: BorderSide(color: colors.border)),
+        ),
+        child: child,
       ),
     );
   }
@@ -281,7 +211,7 @@ class _SidebarFooter extends ConsumerWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       child: PopupMenuButton<String>(
         tooltip: 'Account menu',
         offset: const Offset(0, -8),
@@ -304,30 +234,32 @@ class _SidebarFooter extends ConsumerWidget {
             ),
           ),
         ],
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: colors.border),
-          ),
-          child: Row(
-            mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
-            children: [
-              AppAvatar(name: label),
-              if (expanded) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+        child: expanded
+            ? Container(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                decoration: BoxDecoration(
+                  borderRadius: AppRadius.mdAll,
+                  border: Border.all(color: colors.border),
                 ),
-                Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
-              ],
-            ],
-          ),
-        ),
+                child: Row(
+                  children: [
+                    AppAvatar(name: label),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        label,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
+                  ],
+                ),
+              )
+            : Tooltip(
+                message: label,
+                child: AppAvatar(name: label),
+              ),
       ),
     );
   }

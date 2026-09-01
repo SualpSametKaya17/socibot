@@ -34,6 +34,13 @@ class AppSidebar extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
 
+  /// Icon-only mode relies on a tooltip to convey the label (extended
+  /// mode already shows it as text, so no tooltip needed there).
+  Widget _icon(IconData icon, String label) {
+    final iconWidget = Icon(icon);
+    return extended ? iconWidget : Tooltip(message: label, child: iconWidget);
+  }
+
   @override
   Widget build(BuildContext context) {
     return NavigationRail(
@@ -47,8 +54,8 @@ class AppSidebar extends StatelessWidget {
       destinations: [
         for (final destination in destinations)
           NavigationRailDestination(
-            icon: Icon(destination.icon),
-            selectedIcon: Icon(destination.selectedIcon),
+            icon: _icon(destination.icon, destination.label),
+            selectedIcon: _icon(destination.selectedIcon, destination.label),
             label: Text(destination.label),
           ),
       ],

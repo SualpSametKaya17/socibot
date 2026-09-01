@@ -82,15 +82,52 @@ class _ConversationListHeader extends ConsumerWidget {
     final theme = Theme.of(context);
     final colors = context.colors;
     final newestFirst = ref.watch(inboxSortNewestFirstProvider);
+    final unrepliedOnly = ref.watch(inboxUnrepliedOnlyProvider);
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('Chats', style: theme.textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
-              Text('Chats', style: theme.textTheme.titleMedium),
+              InkWell(
+                borderRadius: BorderRadius.circular(6),
+                onTap: () =>
+                    ref.read(inboxUnrepliedOnlyProvider.notifier).state =
+                        !unrepliedOnly,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        unrepliedOnly
+                            ? Icons.check_box
+                            : Icons.check_box_outline_blank,
+                        size: 16,
+                        color: unrepliedOnly
+                            ? colors.primary
+                            : colors.textMuted,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Unreplied',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: unrepliedOnly
+                              ? colors.primary
+                              : colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const Spacer(),
               InkWell(
                 onTap: () =>

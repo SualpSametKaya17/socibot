@@ -45,6 +45,8 @@ class ConversationTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.mdAll,
+        hoverColor: colors.surfaceSecondary,
+        splashColor: colors.primarySoft,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
