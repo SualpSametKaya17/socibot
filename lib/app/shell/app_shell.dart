@@ -17,6 +17,25 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'nav_destinations.dart';
 
+/// The desktop main sidebar's own dark palette — a deliberate departure
+/// from the light [AppSemanticColors] used everywhere else, scoped to
+/// just this narrow chrome strip. A dark rail against the light content
+/// area is a common, elegant way to separate "app chrome" from "your
+/// data" in dense B2B dashboards (Linear, Vercel) — it reads as more
+/// premium than a pastel-tinted light rail, and gives the indigo accent
+/// somewhere to actually pop. Mobile's drawer is untouched (still light)
+/// since it wasn't part of this ask and already works.
+abstract class _DesktopSidebarPalette {
+  static const background = Color(0xFF16171F);
+  static const border = Color(0x1AFFFFFF);
+  static const hover = Color(0x0FFFFFFF);
+  static const textMuted = Color(0xFF8B8D9B);
+  static const textSecondary = Color(0xFFC2C4D1);
+  static const selectedBg = Color(0x2B6C6CFF);
+  static const selectedFg = Color(0xFFAEB0FF);
+  static const cardBg = Color(0x0DFFFFFF);
+}
+
 /// Application chrome: a narrow (60px) icon-only nav rail + top bar on
 /// desktop/tablet, a full-width labeled drawer + top bar on mobile.
 /// Wraps GoRouter's [StatefulNavigationShell] so each destination keeps
@@ -124,14 +143,20 @@ class _DesktopNavList extends StatelessWidget {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                  child: _SectionCaption('GENERAL'),
+                  child: _SectionCaption(
+                    'GENERAL',
+                    color: _DesktopSidebarPalette.textMuted,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 for (final i in _generalIndexes) _buildRow(i),
                 const SizedBox(height: AppSpacing.md),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                  child: _SectionCaption('SETTINGS'),
+                  child: _SectionCaption(
+                    'SETTINGS',
+                    color: _DesktopSidebarPalette.textMuted,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 for (final i in _settingsIndexes) _buildRow(i),
@@ -139,9 +164,9 @@ class _DesktopNavList extends StatelessWidget {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: _SidebarFooter(expanded: true),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: _DesktopSidebarFooter(),
         ),
       ],
     );
@@ -171,8 +196,6 @@ class _WorkspaceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
     return Tooltip(
       message: 'Switching workspaces is coming in a later stage',
       child: Container(
@@ -181,25 +204,33 @@ class _WorkspaceSelector extends StatelessWidget {
           vertical: 6,
         ),
         decoration: BoxDecoration(
-          color: colors.surface,
+          color: _DesktopSidebarPalette.cardBg,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: colors.border),
+          border: Border.all(color: _DesktopSidebarPalette.border),
         ),
         child: Row(
           children: [
-            Icon(Icons.forum_outlined, size: 16, color: colors.primary),
+            const Icon(
+              Icons.forum_outlined,
+              size: 16,
+              color: _DesktopSidebarPalette.selectedFg,
+            ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: Text(
                 'Socibot',
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.labelMedium.copyWith(
-                  color: colors.textPrimary,
+                  color: Colors.white,
                   fontSize: 12,
                 ),
               ),
             ),
-            Icon(Icons.unfold_more, size: 14, color: colors.textMuted),
+            const Icon(
+              Icons.unfold_more,
+              size: 14,
+              color: _DesktopSidebarPalette.textMuted,
+            ),
           ],
         ),
       ),
@@ -229,12 +260,12 @@ class _DesktopNavRow extends StatelessWidget {
     final colors = context.colors;
 
     return Material(
-      color: selected ? colors.primarySoft : Colors.transparent,
+      color: selected ? _DesktopSidebarPalette.selectedBg : Colors.transparent,
       borderRadius: AppRadius.smAll,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.smAll,
-        hoverColor: colors.surfaceSecondary,
+        hoverColor: _DesktopSidebarPalette.hover,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
@@ -245,7 +276,9 @@ class _DesktopNavRow extends StatelessWidget {
               Icon(
                 selected ? selectedIcon : icon,
                 size: 16,
-                color: selected ? colors.primary : colors.textSecondary,
+                color: selected
+                    ? _DesktopSidebarPalette.selectedFg
+                    : _DesktopSidebarPalette.textSecondary,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -255,7 +288,9 @@ class _DesktopNavRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected ? colors.primary : colors.textSecondary,
+                    color: selected
+                        ? Colors.white
+                        : _DesktopSidebarPalette.textSecondary,
                   ),
                 ),
               ),
@@ -280,6 +315,85 @@ class _DesktopNavRow extends StatelessWidget {
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// [_SidebarFooter]'s dark counterpart for [_DesktopNavList] — same
+/// sign-out menu, styled for the dark rail instead of duplicating the
+/// mobile drawer's light-theme one.
+class _DesktopSidebarFooter extends ConsumerWidget {
+  const _DesktopSidebarFooter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    final label = user?.email ?? 'Account';
+
+    Future<void> signOut() async {
+      final messenger = ScaffoldMessenger.of(context);
+      try {
+        await ref.read(authRepositoryProvider).signOut();
+      } on AppException catch (e) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      child: PopupMenuButton<String>(
+        tooltip: 'Account menu',
+        offset: const Offset(0, -8),
+        position: PopupMenuPosition.over,
+        onSelected: (value) {
+          if (value == 'sign-out') signOut();
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            enabled: false,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
+          const PopupMenuDivider(),
+          const PopupMenuItem<String>(
+            value: 'sign-out',
+            child: ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Sign out'),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: _DesktopSidebarPalette.border),
+          ),
+          child: Row(
+            children: [
+              AppAvatar(name: label, radius: 13),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: _DesktopSidebarPalette.textSecondary,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.unfold_more,
+                size: 14,
+                color: _DesktopSidebarPalette.textMuted,
+              ),
             ],
           ),
         ),
@@ -406,16 +520,20 @@ class _BrandMark extends StatelessWidget {
 }
 
 class _SectionCaption extends StatelessWidget {
-  const _SectionCaption(this.text);
+  const _SectionCaption(this.text, {this.color});
 
   final String text;
+
+  /// Overrides the default (light-theme) muted color — used on
+  /// [_DesktopNavList]'s dark background.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
       style: AppTypography.caption.copyWith(
-        color: context.colors.textMuted,
+        color: color ?? context.colors.textMuted,
         letterSpacing: 0.4,
       ),
     );
@@ -433,13 +551,14 @@ class _SidebarFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     return SizedBox(
       width: width,
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.sidebar,
-          border: Border(right: BorderSide(color: colors.border)),
+        decoration: const BoxDecoration(
+          color: _DesktopSidebarPalette.background,
+          border: Border(
+            right: BorderSide(color: _DesktopSidebarPalette.border),
+          ),
         ),
         child: child,
       ),

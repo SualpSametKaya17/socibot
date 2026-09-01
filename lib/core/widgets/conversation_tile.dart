@@ -44,123 +44,144 @@ class ConversationTile extends StatelessWidget {
     final colors = context.colors;
     final isUnread = unreadCount > 0;
 
+    // Selected state reads as a slim colored edge + soft tint — not a
+    // boxed, bordered card. Quieter and more in line with how elegant
+    // list UIs (Slack, Notion, Superhuman) mark the active row.
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
         color: selected ? colors.primarySoft : Colors.transparent,
-        borderRadius: AppRadius.mdAll,
-        border: selected ? Border.all(color: colors.primary) : null,
+        borderRadius: AppRadius.smAll,
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: AppRadius.mdAll,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppRadius.mdAll,
-          hoverColor: colors.surfaceSecondary,
-          splashColor: colors.primarySoft,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm + 2,
-              vertical: AppSpacing.sm,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppAvatar(
-                  name: contactName,
-                  imageUrl: contactAvatarUrl,
-                  radius: 18,
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            borderRadius: AppRadius.smAll,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: AppRadius.smAll,
+              hoverColor: colors.surfaceSecondary,
+              splashColor: colors.primarySoft,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.md + 2,
+                  right: AppSpacing.sm + 2,
+                  top: AppSpacing.sm,
+                  bottom: AppSpacing.sm,
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppAvatar(
+                      name: contactName,
+                      imageUrl: contactAvatarUrl,
+                      radius: 18,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              contactName,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontSize: 13,
-                                fontWeight: isUnread
-                                    ? FontWeight.w700
-                                    : FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (lastMessageAt != null)
-                            Text(
-                              timeago.format(
-                                lastMessageAt!,
-                                locale: 'en_short',
-                              ),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isUnread
-                                    ? colors.primary
-                                    : colors.textMuted,
-                                fontWeight: isUnread
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs + 2),
-                      Row(
-                        children: [
-                          channelBadge,
-                          const SizedBox(width: AppSpacing.xs),
-                          statusBadge,
-                        ],
-                      ),
-                      if (lastMessagePreview != null) ...[
-                        const SizedBox(height: AppSpacing.xs + 2),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                lastMessagePreview!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 12,
-                                  color: colors.textSecondary,
-                                  fontWeight: isUnread
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  contactName,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: isUnread
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
+                                    color: colors.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
-                            if (isUnread) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              _UnreadCountPill(count: unreadCount),
+                              if (lastMessageAt != null)
+                                Text(
+                                  timeago.format(
+                                    lastMessageAt!,
+                                    locale: 'en_short',
+                                  ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isUnread
+                                        ? colors.primary
+                                        : colors.textMuted,
+                                    fontWeight: isUnread
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
                             ],
-                          ],
-                        ),
-                      ],
-                      if (assignedAgentName != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          'Assigned to $assignedAgentName',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colors.textMuted,
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
+                          const SizedBox(height: AppSpacing.xs + 2),
+                          Row(
+                            children: [
+                              channelBadge,
+                              const SizedBox(width: AppSpacing.xs),
+                              statusBadge,
+                            ],
+                          ),
+                          if (lastMessagePreview != null) ...[
+                            const SizedBox(height: AppSpacing.xs + 2),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    lastMessagePreview!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontSize: 12,
+                                      color: colors.textSecondary,
+                                      fontWeight: isUnread
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                                if (isUnread) ...[
+                                  const SizedBox(width: AppSpacing.sm),
+                                  _UnreadCountPill(count: unreadCount),
+                                ],
+                              ],
+                            ),
+                          ],
+                          if (assignedAgentName != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'Assigned to $assignedAgentName',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (selected)
+            Positioned(
+              left: 0,
+              top: 8,
+              bottom: 8,
+              child: Container(
+                width: 3,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

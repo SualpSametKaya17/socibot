@@ -201,27 +201,22 @@ class _StatusPill extends StatelessWidget {
     final colors = context.colors;
 
     return Material(
-      color: selected ? colors.primarySoft : colors.surface,
+      color: selected ? colors.primarySoft : Colors.transparent,
       borderRadius: AppRadius.fullAll,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.fullAll,
         hoverColor: colors.surfaceSecondary,
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm + 2,
             vertical: 5,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.fullAll,
-            border: Border.all(
-              color: selected ? colors.primary : colors.border,
-            ),
           ),
           child: Text(
             label,
             style: AppTypography.labelMedium.copyWith(
               color: selected ? colors.primary : colors.textSecondary,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
         ),
