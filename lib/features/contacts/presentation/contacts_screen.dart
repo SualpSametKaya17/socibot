@@ -23,6 +23,13 @@ class ContactsScreen extends StatelessWidget {
           ),
         ),
       ),
+      tablet: (context) => Row(
+        children: [
+          const SizedBox(width: 280, child: ContactListPanel()),
+          VerticalDivider(width: 1, color: context.colors.border),
+          const Expanded(child: ContactDetailPane()),
+        ],
+      ),
       desktop: (context) => Row(
         children: [
           const SizedBox(width: 340, child: ContactListPanel()),

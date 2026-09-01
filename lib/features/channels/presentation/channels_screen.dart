@@ -44,7 +44,11 @@ class ChannelsScreen extends ConsumerWidget {
                 }
                 return LayoutBuilder(
                   builder: (context, constraints) {
-                    final columns = constraints.maxWidth >= 720 ? 3 : 1;
+                    final columns = switch (constraints.maxWidth) {
+                      >= 720 => 3,
+                      >= 480 => 2,
+                      _ => 1,
+                    };
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

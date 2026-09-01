@@ -54,8 +54,10 @@ class ChannelCard extends StatelessWidget {
                   child: Text(
                     channel.type.label,
                     style: AppTypography.labelLarge,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
                 StatusBadge(
                   label: channel.status.label,
                   tone: channel.status.tone,
@@ -64,28 +66,43 @@ class ChannelCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              channel.accountName ?? 'Not connected',
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: colors.textSecondary),
-            ),
-            if (channel.lastSyncAt != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                'Last synced ${DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)}',
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: colors.textMuted),
+              channel.accountName ?? 'Not connected yet',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: channel.accountName != null
+                    ? colors.textSecondary
+                    : colors.textMuted,
+                fontStyle: channel.accountName != null
+                    ? FontStyle.normal
+                    : FontStyle.italic,
               ),
-            ],
-            const SizedBox(height: AppSpacing.md),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              channel.lastSyncAt != null
+                  ? 'Last synced ${DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)}'
+                  : 'Never synced',
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: colors.textMuted),
+            ),
+            // Fills whatever room is left so the action button always
+            // lands on the same baseline across every card in the grid,
+            // regardless of how much optional text a given channel has.
+            const Spacer(),
+            const SizedBox(height: AppSpacing.sm),
             Tooltip(
               message: isConnected
                   ? 'Managing a connection needs the connect-channel Edge Function — coming in a later stage'
                   : 'Connecting needs Meta OAuth via an Edge Function — coming in a later stage',
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: OutlinedButton.icon(
                   onPressed: null,
-                  child: Text(isConnected ? 'Manage' : 'Connect'),
+                  icon: Icon(
+                    isConnected ? Icons.settings_outlined : Icons.link,
+                    size: 16,
+                  ),
+                  label: Text(isConnected ? 'Manage' : 'Connect'),
                 ),
               ),
             ),

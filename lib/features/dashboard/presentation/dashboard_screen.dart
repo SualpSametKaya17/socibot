@@ -100,40 +100,41 @@ class _StatsRow extends StatelessWidget {
         .where((c) => c.status == ConversationStatus.resolved)
         .length;
 
+    final colors = context.colors;
     final stats = [
-      (
+      _StatCard(
         label: 'Open conversations',
         value: '$open',
         icon: Icons.forum_outlined,
-        color: context.colors.primary,
+        color: colors.primary,
       ),
-      (
+      _StatCard(
         label: 'Unread',
         value: '$unread',
         icon: Icons.mark_email_unread_outlined,
-        color: context.colors.warning,
+        color: colors.warning,
       ),
-      (
+      _StatCard(
         label: 'Resolved',
         value: '$resolved',
         icon: Icons.task_alt_outlined,
-        color: context.colors.success,
+        color: colors.success,
+      ),
+      _StatCard(
+        label: 'Total conversations',
+        value: '${conversations.length}',
+        icon: Icons.dashboard_outlined,
+        color: colors.textSecondary,
       ),
     ];
 
-    return Row(
-      children: [
-        for (final stat in stats) ...[
-          Expanded(
-            child: _StatCard(
-              label: stat.label,
-              value: stat.value,
-              icon: stat.icon,
-              color: stat.color,
-            ),
+    return _StatsGrid(
+      cards: [
+        for (var i = 0; i < stats.length; i++)
+          FadeSlideIn(
+            delay: Duration(milliseconds: 40 * i),
+            child: stats[i],
           ),
-          if (stat != stats.last) const Gap(AppSpacing.md),
-        ],
       ],
     );
   }
@@ -145,35 +146,58 @@ class _StatsRowSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
+    return _StatsGrid(
+      cards: [
+        for (final icon in const [
+          Icons.forum_outlined,
+          Icons.mark_email_unread_outlined,
+          Icons.task_alt_outlined,
+          Icons.dashboard_outlined,
+        ])
+          _StatCard(
             label: '—',
             value: '—',
-            icon: Icons.forum_outlined,
+            icon: icon,
             color: colors.textMuted,
           ),
-        ),
-        const Gap(AppSpacing.md),
-        Expanded(
-          child: _StatCard(
-            label: '—',
-            value: '—',
-            icon: Icons.mark_email_unread_outlined,
-            color: colors.textMuted,
-          ),
-        ),
-        const Gap(AppSpacing.md),
-        Expanded(
-          child: _StatCard(
-            label: '—',
-            value: '—',
-            icon: Icons.task_alt_outlined,
-            color: colors.textMuted,
-          ),
-        ),
       ],
+    );
+  }
+}
+
+/// 4 columns on desktop, 2x2 on tablet/mobile down to a minimum readable
+/// card width, then a single column — not a fixed [Row] that would
+/// squeeze four cards into an unreadable sliver on a narrow screen.
+class _StatsGrid extends StatelessWidget {
+  const _StatsGrid({required this.cards});
+
+  final List<Widget> cards;
+
+  static const double _cardHeight = 92;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = switch (constraints.maxWidth) {
+          >= 800 => 4,
+          >= 420 => 2,
+          _ => 1,
+        };
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: cards.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
+            mainAxisExtent: _cardHeight,
+          ),
+          itemBuilder: (context, index) => cards[index],
+        );
+      },
     );
   }
 }
