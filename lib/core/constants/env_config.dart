@@ -20,6 +20,13 @@ class EnvConfig {
 
   static bool get isProduction => environmentName == 'production';
 
+  /// Skips the auth guard so the shell can be reviewed locally without a
+  /// real Supabase session. Opt-in only (`--dart-define=SKIP_AUTH_FOR_DEV=true`)
+  /// and additionally gated behind `kDebugMode` at the call site — never
+  /// available in a release build even if this define is left on by
+  /// mistake.
+  static const bool skipAuthForDev = bool.fromEnvironment('SKIP_AUTH_FOR_DEV');
+
   /// Fails fast on startup instead of surfacing a confusing Supabase error
   /// later if the app was launched without the required dart-defines.
   static void assertValid() {

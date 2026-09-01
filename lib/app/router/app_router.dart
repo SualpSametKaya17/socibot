@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/env_config.dart';
 import '../../core/constants/route_paths.dart';
 import '../../core/services/supabase/supabase_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -12,6 +14,7 @@ import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/inbox/presentation/inbox_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../shell/app_shell.dart';
+import '../shell/design_preview_screen.dart';
 import 'go_router_refresh_stream.dart';
 
 /// Root GoRouter configuration.
@@ -33,7 +36,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
     refreshListenable: refreshListenable,
     redirect: (context, state) {
-      final isLoggedIn = client.auth.currentSession != null;
+      // kDebugMode-gated dev bypass for reviewing the shell UI locally
+      // without a real Supabase session — see EnvConfig.skipAuthForDev.
+      final isLoggedIn =
+          client.auth.currentSession != null ||
+          (kDebugMode && EnvConfig.skipAuthForDev);
       final location = state.matchedLocation;
       final isAuthRoute =
           location == RoutePaths.login || location == RoutePaths.register;
@@ -58,6 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.designPreview,
+        builder: (context, state) => const DesignPreviewScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

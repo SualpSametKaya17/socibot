@@ -30,7 +30,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ref.read(registerControllerProvider.notifier).submit(
+    ref
+        .read(registerControllerProvider.notifier)
+        .submit(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -41,7 +43,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ref.listen(registerControllerProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
-          final message = error is AppException ? error.message : error.toString();
+          final message = error is AppException
+              ? error.message
+              : error.toString();
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(content: Text(message)));
@@ -148,8 +152,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed:
-                        isLoading ? null : () => context.go(RoutePaths.login),
+                    onPressed: isLoading
+                        ? null
+                        : () => context.go(RoutePaths.login),
                     child: const Text('Already have an account? Sign in'),
                   ),
                 ],

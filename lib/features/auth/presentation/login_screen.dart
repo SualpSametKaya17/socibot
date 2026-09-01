@@ -28,7 +28,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ref.read(loginControllerProvider.notifier).submit(
+    ref
+        .read(loginControllerProvider.notifier)
+        .submit(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -39,7 +41,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(loginControllerProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
-          final message = error is AppException ? error.message : error.toString();
+          final message = error is AppException
+              ? error.message
+              : error.toString();
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(content: Text(message)));

@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_semantic_colors.dart';
+
 /// Circular avatar showing a profile image when available, otherwise the
 /// initials derived from [name].
 class AppAvatar extends StatelessWidget {
@@ -24,8 +26,11 @@ class AppAvatar extends StatelessWidget {
       );
     }
 
+    final colors = context.colors;
     return CircleAvatar(
       radius: radius,
+      backgroundColor: colors.primarySoft,
+      foregroundColor: colors.primary,
       child: Text(
         _initialsOf(name),
         style: TextStyle(fontSize: radius * 0.7, fontWeight: FontWeight.w600),

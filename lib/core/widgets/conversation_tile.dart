@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../app/theme/app_radius.dart';
+import '../../app/theme/app_semantic_colors.dart';
+import '../../app/theme/app_spacing.dart';
 import 'app_avatar.dart';
 
 /// One row in the inbox conversation list. Takes prebuilt badge widgets
@@ -33,21 +36,29 @@ class ConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = context.colors;
     final isUnread = unreadCount > 0;
 
     return Material(
-      color: selected
-          ? theme.colorScheme.primary.withValues(alpha: 0.08)
-          : Colors.transparent,
+      color: selected ? colors.primarySoft : Colors.transparent,
+      borderRadius: AppRadius.mdAll,
       child: InkWell(
         onTap: onTap,
+        borderRadius: AppRadius.mdAll,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm + 2,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppAvatar(name: contactName, imageUrl: contactAvatarUrl, radius: 20),
-              const SizedBox(width: 12),
+              AppAvatar(
+                name: contactName,
+                imageUrl: contactAvatarUrl,
+                radius: 20,
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,8 +68,11 @@ class ConversationTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             contactName,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: isUnread
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: colors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -68,23 +82,25 @@ class ConversationTile extends StatelessWidget {
                             timeago.format(lastMessageAt!, locale: 'en_short'),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isUnread
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurfaceVariant,
-                              fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+                                  ? colors.primary
+                                  : colors.textMuted,
+                              fontWeight: isUnread
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppSpacing.xs + 2),
                     Row(
                       children: [
                         channelBadge,
-                        const SizedBox(width: 6),
+                        const SizedBox(width: AppSpacing.xs),
                         statusBadge,
                       ],
                     ),
                     if (lastMessagePreview != null) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: AppSpacing.xs + 2),
                       Row(
                         children: [
                           Expanded(
@@ -92,14 +108,16 @@ class ConversationTile extends StatelessWidget {
                               lastMessagePreview!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.textSecondary,
+                                fontWeight: isUnread
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                               ),
                             ),
                           ),
                           if (isUnread) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: AppSpacing.sm),
                             _UnreadCountPill(count: unreadCount),
                           ],
                         ],
@@ -123,20 +141,18 @@ class _UnreadCountPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = context.colors;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(999),
+        color: colors.primary,
+        borderRadius: AppRadius.fullAll,
       ),
       child: Text(
         '$count',
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.w700,
-        ),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
       ),
     );
   }

@@ -16,13 +16,17 @@ final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
 /// Inbox search/filter UI state. Ephemeral and screen-local, so plain
 /// [StateProvider]s are enough — no need for a dedicated controller class.
 final inboxSearchQueryProvider = StateProvider<String>((ref) => '');
-final inboxStatusFilterProvider = StateProvider<ConversationStatus?>((ref) => null);
+final inboxStatusFilterProvider = StateProvider<ConversationStatus?>(
+  (ref) => null,
+);
 final inboxChannelFilterProvider = StateProvider<ChannelType?>((ref) => null);
 final selectedConversationIdProvider = StateProvider<String?>((ref) => null);
 
 /// [conversationsProvider] narrowed by the current search query and
 /// filters, newest first.
-final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((ref) {
+final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
+  ref,
+) {
   final conversationsAsync = ref.watch(conversationsProvider);
   final query = ref.watch(inboxSearchQueryProvider).trim().toLowerCase();
   final statusFilter = ref.watch(inboxStatusFilterProvider);

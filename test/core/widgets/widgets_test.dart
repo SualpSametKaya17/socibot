@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/core/widgets/app_avatar.dart';
 import 'package:socibot/core/widgets/responsive_layout.dart';
 
@@ -7,7 +8,10 @@ void main() {
   group('AppAvatar', () {
     testWidgets('shows initials from a two-word name', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: AppAvatar(name: 'Ada Lovelace')),
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const AppAvatar(name: 'Ada Lovelace'),
+        ),
       );
 
       expect(find.text('AL'), findsOneWidget);
@@ -17,7 +21,10 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(home: AppAvatar(name: 'ada@example.com')),
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const AppAvatar(name: 'ada@example.com'),
+        ),
       );
 
       expect(find.text('A'), findsOneWidget);
@@ -32,6 +39,7 @@ void main() {
         MediaQuery(
           data: const MediaQueryData(size: Size(500, 800)),
           child: MaterialApp(
+            theme: AppTheme.light,
             home: ResponsiveLayout(
               mobile: (_) => const Text('mobile'),
               desktop: (_) => const Text('desktop'),
@@ -51,6 +59,7 @@ void main() {
         MediaQuery(
           data: const MediaQueryData(size: Size(1200, 800)),
           child: MaterialApp(
+            theme: AppTheme.light,
             home: ResponsiveLayout(
               mobile: (_) => const Text('mobile'),
               desktop: (_) => const Text('desktop'),

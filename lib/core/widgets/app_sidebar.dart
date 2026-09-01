@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_sizes.dart';
+
 class SidebarDestination {
   const SidebarDestination({
     required this.icon,
@@ -36,7 +38,7 @@ class AppSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationRail(
       extended: extended,
-      minExtendedWidth: 232,
+      minExtendedWidth: AppSizes.sidebarWidth,
       groupAlignment: -1,
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,

@@ -29,5 +29,5 @@ class RegisterController extends AsyncNotifier<RegisterResult?> {
 
 final registerControllerProvider =
     AsyncNotifierProvider<RegisterController, RegisterResult?>(
-  RegisterController.new,
-);
+      RegisterController.new,
+    );

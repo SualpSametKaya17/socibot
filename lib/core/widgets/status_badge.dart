@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/app_colors.dart';
+import '../../app/theme/app_semantic_colors.dart';
 import '../constants/status_tone.dart';
 import 'app_badge.dart';
 
@@ -15,12 +15,13 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final color = switch (tone) {
-      StatusTone.success => AppColors.success,
-      StatusTone.warning => AppColors.warning,
-      StatusTone.danger => AppColors.danger,
-      StatusTone.info => AppColors.info,
-      StatusTone.neutral => Theme.of(context).colorScheme.outline,
+      StatusTone.success => colors.success,
+      StatusTone.warning => colors.warning,
+      StatusTone.danger => colors.error,
+      StatusTone.info => colors.primary,
+      StatusTone.neutral => colors.textMuted,
     };
 
     return AppBadge(label: label, color: color);

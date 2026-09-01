@@ -15,4 +15,8 @@ class RoutePaths {
   static const String contacts = '/contacts';
   static const String channels = '/channels';
   static const String settings = '/settings';
+
+  /// UI-language reference page — not a real feature, validates design
+  /// tokens/components only. Not linked from the sidebar.
+  static const String designPreview = '/design-preview';
 }

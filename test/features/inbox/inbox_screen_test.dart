@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/features/inbox/presentation/inbox_screen.dart';
 
 void main() {
@@ -8,14 +9,19 @@ void main() {
     return ProviderScope(
       child: MediaQuery(
         data: MediaQueryData(size: size),
-        child: MaterialApp(home: Scaffold(body: child)),
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(body: child),
+        ),
       ),
     );
   }
 
   group('InboxScreen (mobile)', () {
     testWidgets('lists all mock conversations by default', (tester) async {
-      await tester.pumpWidget(wrap(const InboxScreen(), size: const Size(400, 800)));
+      await tester.pumpWidget(
+        wrap(const InboxScreen(), size: const Size(400, 800)),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Elena Martinez'), findsOneWidget);
@@ -24,7 +30,9 @@ void main() {
     });
 
     testWidgets('search narrows the list to matching contacts', (tester) async {
-      await tester.pumpWidget(wrap(const InboxScreen(), size: const Size(400, 800)));
+      await tester.pumpWidget(
+        wrap(const InboxScreen(), size: const Size(400, 800)),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'Elena');
@@ -35,7 +43,9 @@ void main() {
     });
 
     testWidgets('status filter chip narrows the list', (tester) async {
-      await tester.pumpWidget(wrap(const InboxScreen(), size: const Size(400, 800)));
+      await tester.pumpWidget(
+        wrap(const InboxScreen(), size: const Size(400, 800)),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Resolved'));
@@ -47,7 +57,9 @@ void main() {
     });
 
     testWidgets('no results shows the empty state', (tester) async {
-      await tester.pumpWidget(wrap(const InboxScreen(), size: const Size(400, 800)));
+      await tester.pumpWidget(
+        wrap(const InboxScreen(), size: const Size(400, 800)),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'nobody matches this');
@@ -59,7 +71,9 @@ void main() {
 
   group('InboxScreen (desktop)', () {
     testWidgets('shows list and detail panes side by side', (tester) async {
-      await tester.pumpWidget(wrap(const InboxScreen(), size: const Size(1280, 800)));
+      await tester.pumpWidget(
+        wrap(const InboxScreen(), size: const Size(1280, 800)),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Select a conversation'), findsOneWidget);

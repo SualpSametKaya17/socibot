@@ -17,13 +17,14 @@ final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
 class CurrentOrganizationController extends AsyncNotifier<Organization?> {
   @override
   FutureOr<Organization?> build() async {
-    final organizations =
-        await ref.watch(organizationRepositoryProvider).fetchMyOrganizations();
+    final organizations = await ref
+        .watch(organizationRepositoryProvider)
+        .fetchMyOrganizations();
     return organizations.isEmpty ? null : organizations.first;
   }
 }
 
 final currentOrganizationProvider =
     AsyncNotifierProvider<CurrentOrganizationController, Organization?>(
-  CurrentOrganizationController.new,
-);
+      CurrentOrganizationController.new,
+    );
