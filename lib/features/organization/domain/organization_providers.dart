@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/organization_repository.dart';
 import 'organization.dart';
+import 'organization_member.dart';
 
 final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
   return MockOrganizationRepository();
@@ -28,3 +29,16 @@ final currentOrganizationProvider =
     AsyncNotifierProvider<CurrentOrganizationController, Organization?>(
       CurrentOrganizationController.new,
     );
+
+/// Members of the current organization, for the Settings screen's team
+/// list. Resolves to an empty list while [currentOrganizationProvider] is
+/// still loading or has no organization, rather than erroring.
+final organizationMembersProvider = FutureProvider<List<OrganizationMember>>((
+  ref,
+) async {
+  final organization = await ref.watch(currentOrganizationProvider.future);
+  if (organization == null) return [];
+  return ref
+      .watch(organizationRepositoryProvider)
+      .fetchMembers(organization.id);
+});

@@ -11,4 +11,10 @@ enum OrganizationRole {
   bool get canManageMembers => this == owner || this == admin;
 
   bool get canManageChannels => this == owner || this == admin;
+
+  String get label => switch (this) {
+    OrganizationRole.owner => 'Owner',
+    OrganizationRole.admin => 'Admin',
+    OrganizationRole.member => 'Member',
+  };
 }

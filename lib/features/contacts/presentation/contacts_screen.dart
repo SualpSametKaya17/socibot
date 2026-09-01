@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/empty_state.dart';
+import '../../../app/theme/app_semantic_colors.dart';
+import '../../../core/widgets/app_top_bar.dart';
+import '../../../core/widgets/responsive_layout.dart';
+import 'widgets/contact_detail_pane.dart';
+import 'widgets/contact_list_panel.dart';
 
+/// The Contacts screen — same list+detail paradigm as Inbox.
 class ContactsScreen extends StatelessWidget {
   const ContactsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const EmptyState(
-      icon: Icons.people_outline,
-      title: 'Contacts is coming soon',
-      message:
-          'Everyone who has messaged you across channels will show up here.',
+    return ResponsiveLayout(
+      mobile: (context) => ContactListPanel(
+        onSelect: (_) => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (context) => Scaffold(
+              appBar: AppTopBar(title: const Text('Contact')),
+              body: const ContactDetailPane(),
+            ),
+          ),
+        ),
+      ),
+      desktop: (context) => Row(
+        children: [
+          const SizedBox(width: 340, child: ContactListPanel()),
+          VerticalDivider(width: 1, color: context.colors.border),
+          const Expanded(child: ContactDetailPane()),
+        ],
+      ),
     );
   }
 }
