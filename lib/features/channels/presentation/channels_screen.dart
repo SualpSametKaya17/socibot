@@ -6,6 +6,7 @@ import '../../../app/theme/app_semantic_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../domain/channel_providers.dart';
 import 'widgets/channel_card.dart';
 
@@ -54,8 +55,10 @@ class ChannelsScreen extends ConsumerWidget {
                         crossAxisSpacing: AppSpacing.md,
                         mainAxisExtent: 200,
                       ),
-                      itemBuilder: (context, index) =>
-                          ChannelCard(channel: channels[index]),
+                      itemBuilder: (context, index) => FadeSlideIn(
+                        delay: Duration(milliseconds: 40 * index),
+                        child: ChannelCard(channel: channels[index]),
+                      ),
                     );
                   },
                 );

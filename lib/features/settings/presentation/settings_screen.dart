@@ -9,7 +9,9 @@ import '../../../app/theme/app_typography.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_badge.dart';
+import '../../../core/widgets/app_surface_card.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../../auth/domain/auth_providers.dart';
 import '../../organization/domain/organization_member.dart';
 import '../../organization/domain/organization_providers.dart';
@@ -35,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
             const Gap(AppSpacing.md),
             organizationAsync.when(
               data: (organization) => organization == null
-                  ? const Card(
+                  ? const AppSurfaceCard(
                       child: EmptyState(
                         icon: Icons.apartment_outlined,
                         title: 'No organization yet',
@@ -46,11 +48,9 @@ class SettingsScreen extends ConsumerWidget {
                       slug: organization.slug,
                       createdAt: organization.createdAt,
                     ),
-              loading: () => const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.lg),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+              loading: () => const AppSurfaceCard(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Center(child: CircularProgressIndicator()),
               ),
               error: (error, stackTrace) => EmptyState(
                 icon: Icons.error_outline,
@@ -63,11 +63,9 @@ class SettingsScreen extends ConsumerWidget {
             const Gap(AppSpacing.md),
             membersAsync.when(
               data: (members) => _TeamCard(members: members),
-              loading: () => const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.lg),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+              loading: () => const AppSurfaceCard(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Center(child: CircularProgressIndicator()),
               ),
               error: (error, stackTrace) => EmptyState(
                 icon: Icons.error_outline,
@@ -100,21 +98,19 @@ class _OrganizationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(name, style: AppTypography.labelLarge),
-            const Gap(AppSpacing.xs),
-            Text(
-              '$slug · created ${DateFormat.yMMMd().format(createdAt)}',
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: colors.textSecondary),
-            ),
-          ],
-        ),
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(name, style: AppTypography.labelLarge),
+          const Gap(AppSpacing.xs),
+          Text(
+            '$slug · created ${DateFormat.yMMMd().format(createdAt)}',
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: colors.textSecondary),
+          ),
+        ],
       ),
     );
   }
@@ -128,53 +124,59 @@ class _TeamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (members.isEmpty) {
-      return const Card(
+      return const AppSurfaceCard(
         child: EmptyState(icon: Icons.group_outlined, title: 'No members yet'),
       );
     }
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return AppSurfaceCard(
+      clip: true,
       child: Column(
         children: [
-          for (final member in members) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  AppAvatar(
-                    name: member.displayName,
-                    imageUrl: member.avatarUrl,
-                  ),
-                  const Gap(AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          member.displayName,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        if (member.email != null)
-                          Text(
-                            member.email!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: context.colors.textSecondary),
-                          ),
-                      ],
+          for (var i = 0; i < members.length; i++) ...[
+            FadeSlideIn(
+              delay: Duration(milliseconds: 30 * i),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    AppAvatar(
+                      name: members[i].displayName,
+                      imageUrl: members[i].avatarUrl,
                     ),
-                  ),
-                  AppBadge(
-                    label: member.role.label,
-                    color: context.colors.primary,
-                  ),
-                ],
+                    const Gap(AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            members[i].displayName,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          if (members[i].email != null)
+                            Text(
+                              members[i].email!,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: context.colors.textSecondary,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    AppBadge(
+                      label: members[i].role.label,
+                      color: context.colors.primary,
+                    ),
+                  ],
+                ),
               ),
             ),
-            if (member != members.last) const Divider(height: 1),
+            if (i != members.length - 1)
+              Divider(height: 1, color: context.colors.border),
           ],
         ],
       ),
@@ -202,33 +204,31 @@ class _AccountCard extends ConsumerWidget {
       }
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          children: [
-            AppAvatar(name: email),
-            const Gap(AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Signed in as',
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: colors.textSecondary),
-                  ),
-                  Text(email, style: Theme.of(context).textTheme.bodyMedium),
-                ],
-              ),
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          AppAvatar(name: email),
+          const Gap(AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Signed in as',
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: colors.textSecondary),
+                ),
+                Text(email, style: Theme.of(context).textTheme.bodyMedium),
+              ],
             ),
-            OutlinedButton.icon(
-              onPressed: signOut,
-              icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Sign out'),
-            ),
-          ],
-        ),
+          ),
+          OutlinedButton.icon(
+            onPressed: signOut,
+            icon: const Icon(Icons.logout, size: 18),
+            label: const Text('Sign out'),
+          ),
+        ],
       ),
     );
   }

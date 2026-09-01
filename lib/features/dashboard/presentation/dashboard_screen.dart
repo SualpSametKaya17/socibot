@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../core/constants/route_paths.dart';
+import '../../../core/widgets/app_surface_card.dart';
 import '../../../core/widgets/channel_badge.dart';
 import '../../../core/widgets/conversation_tile.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -195,13 +195,8 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Container(
+    return AppSurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: colors.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -270,12 +265,8 @@ class _RecentConversationsCard extends ConsumerWidget {
     final colors = context.colors;
 
     if (conversations.isEmpty) {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: colors.border),
-        ),
-        child: const EmptyState(
+      return const AppSurfaceCard(
+        child: EmptyState(
           icon: Icons.forum_outlined,
           title: 'No conversations yet',
         ),
@@ -291,13 +282,8 @@ class _RecentConversationsCard extends ConsumerWidget {
       });
     final topFive = recent.take(5).toList();
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: colors.border),
-      ),
+    return AppSurfaceCard(
+      clip: true,
       child: Column(
         children: [
           for (var i = 0; i < topFive.length; i++) ...[
