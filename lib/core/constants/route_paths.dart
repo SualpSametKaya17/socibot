@@ -6,8 +6,7 @@ class RoutePaths {
   const RoutePaths._();
 
   static const String splash = '/';
-
-  // Reserved for upcoming stages (AŞAMA 1+). Not wired into the router yet.
   static const String login = '/login';
+  static const String register = '/register';
   static const String home = '/home';
 }
