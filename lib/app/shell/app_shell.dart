@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/route_paths.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/widgets/app_avatar.dart';
 import '../../core/widgets/app_sidebar.dart';
 import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/auth/domain/auth_providers.dart';
+import '../../features/conversations/domain/conversation_providers.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_semantic_colors.dart';
 import '../theme/app_sizes.dart';
 import '../theme/app_spacing.dart';
+import '../theme/app_typography.dart';
 import 'nav_destinations.dart';
 
-/// Application chrome: a fixed-width, icon-only global nav rail + top bar
-/// on desktop/tablet, a drawer + top bar on mobile. Wraps GoRouter's
+/// Application chrome: a full-width labeled nav sidebar + top bar on
+/// desktop/tablet, a drawer + top bar on mobile — the same extended
+/// sidebar content in both, just framed differently. Wraps GoRouter's
 /// [StatefulNavigationShell] so each destination keeps its own
 /// navigation state when switching tabs.
 class AppShell extends StatelessWidget {
@@ -45,10 +49,7 @@ class AppShell extends StatelessWidget {
   }
 }
 
-/// Desktop/tablet: a narrow (60px) icon-only rail — brand mark at top,
-/// destinations with tooltips, profile/account menu pinned to the
-/// bottom.
-class _DesktopShell extends StatelessWidget {
+class _DesktopShell extends ConsumerWidget {
   const _DesktopShell({
     required this.navigationShell,
     required this.onDestinationSelected,
@@ -58,34 +59,19 @@ class _DesktopShell extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final destination = shellDestinations[navigationShell.currentIndex];
+    final unreadCount = ref.watch(totalUnreadCountProvider);
 
     return Scaffold(
       body: Row(
         children: [
           _SidebarFrame(
-            width: AppSizes.navRailWidth,
-            child: AppSidebar(
-              destinations: [
-                for (final d in shellDestinations) d.toSidebarDestination(),
-              ],
+            width: AppSizes.sidebarWidth,
+            child: _ShellSidebarContent(
               selectedIndex: navigationShell.currentIndex,
+              unreadCount: unreadCount,
               onDestinationSelected: onDestinationSelected,
-              extended: false,
-              leading: const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: _BrandMark(),
-              ),
-              trailing: const Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    child: _SidebarFooter(expanded: false),
-                  ),
-                ),
-              ),
             ),
           ),
           Expanded(
@@ -102,7 +88,7 @@ class _DesktopShell extends StatelessWidget {
   }
 }
 
-class _MobileShell extends StatelessWidget {
+class _MobileShell extends ConsumerWidget {
   const _MobileShell({
     required this.navigationShell,
     required this.onDestinationSelected,
@@ -112,30 +98,18 @@ class _MobileShell extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final destination = shellDestinations[navigationShell.currentIndex];
+    final unreadCount = ref.watch(totalUnreadCountProvider);
 
     return Scaffold(
       appBar: AppTopBar(title: Text(destination.label)),
       drawer: Drawer(
         backgroundColor: context.colors.sidebar,
         child: SafeArea(
-          child: AppSidebar(
-            destinations: [
-              for (final d in shellDestinations) d.toSidebarDestination(),
-            ],
+          child: _ShellSidebarContent(
             selectedIndex: navigationShell.currentIndex,
-            extended: true,
-            leading: const Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              child: _BrandMark(),
-            ),
-            trailing: const Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: _SidebarFooter(expanded: true),
-              ),
-            ),
+            unreadCount: unreadCount,
             onDestinationSelected: (index) {
               Navigator.of(context).pop();
               onDestinationSelected(index);
@@ -148,14 +122,90 @@ class _MobileShell extends StatelessWidget {
   }
 }
 
+/// The extended (labeled) nav rail content shared by desktop's fixed
+/// sidebar and mobile's drawer: brand header, a "GENERAL" section label,
+/// destinations (Inbox carries a real unread badge), and the
+/// account/sign-out footer pinned to the bottom.
+class _ShellSidebarContent extends StatelessWidget {
+  const _ShellSidebarContent({
+    required this.selectedIndex,
+    required this.unreadCount,
+    required this.onDestinationSelected,
+  });
+
+  final int selectedIndex;
+  final int unreadCount;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSidebar(
+      destinations: [
+        for (final d in shellDestinations)
+          d.toSidebarDestination(
+            badgeCount: d.path == RoutePaths.inbox ? unreadCount : null,
+          ),
+      ],
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onDestinationSelected,
+      extended: true,
+      leading: const Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.sm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _BrandMark(),
+            SizedBox(height: AppSpacing.lg),
+            _SectionCaption('GENERAL'),
+          ],
+        ),
+      ),
+      trailing: const Expanded(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: _SidebarFooter(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Socibot',
-      child: Icon(Icons.forum_outlined, color: context.colors.primary),
+    return Row(
+      children: [
+        Icon(Icons.forum_outlined, color: context.colors.primary),
+        const SizedBox(width: AppSpacing.sm),
+        Text('Socibot', style: AppTypography.labelLarge),
+      ],
+    );
+  }
+}
+
+class _SectionCaption extends StatelessWidget {
+  const _SectionCaption(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: AppTypography.caption.copyWith(
+        color: context.colors.textMuted,
+        letterSpacing: 0.4,
+      ),
     );
   }
 }
@@ -189,9 +239,7 @@ class _SidebarFrame extends StatelessWidget {
 /// opens the account menu (sign out) — the one place that action lives,
 /// so the top bar can stay minimal.
 class _SidebarFooter extends ConsumerWidget {
-  const _SidebarFooter({required this.expanded});
-
-  final bool expanded;
+  const _SidebarFooter();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -234,32 +282,27 @@ class _SidebarFooter extends ConsumerWidget {
             ),
           ),
         ],
-        child: expanded
-            ? Container(
-                padding: const EdgeInsets.all(AppSpacing.xs),
-                decoration: BoxDecoration(
-                  borderRadius: AppRadius.mdAll,
-                  border: Border.all(color: colors.border),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            children: [
+              AppAvatar(name: label),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                child: Row(
-                  children: [
-                    AppAvatar(name: label),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        label,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
-                  ],
-                ),
-              )
-            : Tooltip(
-                message: label,
-                child: AppAvatar(name: label),
               ),
+              Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
+            ],
+          ),
+        ),
       ),
     );
   }

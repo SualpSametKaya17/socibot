@@ -16,11 +16,12 @@ class ShellDestination {
   final IconData icon;
   final IconData selectedIcon;
 
-  SidebarDestination toSidebarDestination() {
+  SidebarDestination toSidebarDestination({int? badgeCount}) {
     return SidebarDestination(
       icon: icon,
       selectedIcon: selectedIcon,
       label: label,
+      badgeCount: badgeCount,
     );
   }
 }

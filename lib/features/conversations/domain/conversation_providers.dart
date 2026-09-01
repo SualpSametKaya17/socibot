@@ -16,6 +16,15 @@ final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
   return ref.watch(conversationRepositoryProvider).fetchConversations();
 });
 
+/// Sum of every conversation's real `unreadCount` — badges the shell's
+/// Inbox nav destination. 0 while loading/erroring rather than showing a
+/// stale or fake number.
+final totalUnreadCountProvider = Provider<int>((ref) {
+  final conversations = ref.watch(conversationsProvider).valueOrNull;
+  if (conversations == null) return 0;
+  return conversations.fold<int>(0, (sum, c) => sum + c.unreadCount);
+});
+
 /// Inbox search/filter UI state. Ephemeral and screen-local, so plain
 /// [StateProvider]s are enough — no need for a dedicated controller class.
 final inboxSearchQueryProvider = StateProvider<String>((ref) => '');

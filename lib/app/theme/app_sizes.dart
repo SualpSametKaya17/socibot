@@ -3,11 +3,9 @@
 class AppSizes {
   const AppSizes._();
 
-  /// Extended-mode width (mobile drawer, which has room for labels).
+  /// The global nav sidebar's width — extended (icon + label) on both
+  /// desktop's fixed rail and mobile's drawer.
   static const double sidebarWidth = 232;
-
-  /// The global nav rail's fixed icon-only width on desktop/tablet.
-  static const double navRailWidth = 60;
 
   static const double topBarHeight = 60;
 
