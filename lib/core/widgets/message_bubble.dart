@@ -63,6 +63,7 @@ class MessageBubble extends StatelessWidget {
               ),
               child: Text(
                 text,
+                textAlign: isOutgoing ? TextAlign.right : TextAlign.left,
                 style: theme.textTheme.bodySmall?.copyWith(color: textColor),
               ),
             ),
