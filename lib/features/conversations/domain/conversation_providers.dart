@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/channel_type.dart';
+import '../../inbox/domain/inbox_quick_filter.dart';
 import '../data/conversation_repository.dart';
+import '../data/mock/conversation_mock_data.dart';
 import 'conversation.dart';
 import 'conversation_status.dart';
 
@@ -16,38 +17,65 @@ final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
 /// Inbox search/filter UI state. Ephemeral and screen-local, so plain
 /// [StateProvider]s are enough — no need for a dedicated controller class.
 final inboxSearchQueryProvider = StateProvider<String>((ref) => '');
+final inboxQuickFilterProvider = StateProvider<InboxQuickFilter>(
+  (ref) => InboxQuickFilter.all,
+);
 final inboxStatusFilterProvider = StateProvider<ConversationStatus?>(
   (ref) => null,
 );
-final inboxChannelFilterProvider = StateProvider<ChannelType?>((ref) => null);
 final selectedConversationIdProvider = StateProvider<String?>((ref) => null);
 
-/// [conversationsProvider] narrowed by the current search query and
-/// filters, newest first.
+/// `true` = newest first (default), `false` = oldest first.
+final inboxSortNewestFirstProvider = StateProvider<bool>((ref) => true);
+
+/// [conversationsProvider] narrowed by the quick filter, status filter, and
+/// search query — in that order — newest first. Note this does *not*
+/// depend on [inboxSearchQueryProvider], so the sidebar's counts stay
+/// stable while the user types a search.
+final _quickAndStatusFilteredProvider =
+    Provider<AsyncValue<List<Conversation>>>((ref) {
+      final conversationsAsync = ref.watch(conversationsProvider);
+      final quickFilter = ref.watch(inboxQuickFilterProvider);
+      final statusFilter = ref.watch(inboxStatusFilterProvider);
+
+      return conversationsAsync.whenData((conversations) {
+        return conversations.where((conversation) {
+          switch (quickFilter) {
+            case InboxQuickFilter.all:
+              break;
+            case InboxQuickFilter.mine:
+              if (conversation.assignedAgentName != mockCurrentAgentName) {
+                return false;
+              }
+            case InboxQuickFilter.unassigned:
+              if (conversation.assignedAgentName != null) return false;
+          }
+          if (statusFilter != null && conversation.status != statusFilter) {
+            return false;
+          }
+          return true;
+        }).toList();
+      });
+    });
+
+/// The list the conversation panel actually renders: [_quickAndStatusFilteredProvider]
+/// further narrowed by the search box, newest first.
 final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
   ref,
 ) {
-  final conversationsAsync = ref.watch(conversationsProvider);
+  final scoped = ref.watch(_quickAndStatusFilteredProvider);
   final query = ref.watch(inboxSearchQueryProvider).trim().toLowerCase();
-  final statusFilter = ref.watch(inboxStatusFilterProvider);
-  final channelFilter = ref.watch(inboxChannelFilterProvider);
+  final newestFirst = ref.watch(inboxSortNewestFirstProvider);
 
-  return conversationsAsync.whenData((conversations) {
-    final filtered = conversations.where((conversation) {
-      if (statusFilter != null && conversation.status != statusFilter) {
-        return false;
-      }
-      if (channelFilter != null && conversation.channel != channelFilter) {
-        return false;
-      }
-      if (query.isNotEmpty) {
-        final haystack =
-            '${conversation.contactName} ${conversation.lastMessagePreview ?? ''}'
-                .toLowerCase();
-        if (!haystack.contains(query)) return false;
-      }
-      return true;
-    }).toList();
+  return scoped.whenData((conversations) {
+    final filtered = query.isEmpty
+        ? conversations
+        : conversations.where((conversation) {
+            final haystack =
+                '${conversation.contactName} ${conversation.lastMessagePreview ?? ''}'
+                    .toLowerCase();
+            return haystack.contains(query);
+          }).toList();
 
     filtered.sort((a, b) {
       final aTime = a.lastMessageAt;
@@ -55,9 +83,63 @@ final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
       if (aTime == null && bTime == null) return 0;
       if (aTime == null) return 1;
       if (bTime == null) return -1;
-      return bTime.compareTo(aTime);
+      return newestFirst ? bTime.compareTo(aTime) : aTime.compareTo(bTime);
     });
 
     return filtered;
   });
 });
+
+/// Counts for the Inbox filter sidebar's All/Mine/Unassigned rows, over
+/// every conversation regardless of the current status filter or search.
+final inboxQuickFilterCountsProvider =
+    Provider<AsyncValue<Map<InboxQuickFilter, int>>>((ref) {
+      return ref.watch(conversationsProvider).whenData((conversations) {
+        return {
+          InboxQuickFilter.all: conversations.length,
+          InboxQuickFilter.mine: conversations
+              .where((c) => c.assignedAgentName == mockCurrentAgentName)
+              .length,
+          InboxQuickFilter.unassigned: conversations
+              .where((c) => c.assignedAgentName == null)
+              .length,
+        };
+      });
+    });
+
+/// Counts for the sidebar's STATUS section, scoped to the current quick
+/// filter (so "Mine" shows how many of *your* conversations are open,
+/// not the whole inbox's).
+final inboxStatusCountsProvider =
+    Provider<AsyncValue<Map<ConversationStatus, int>>>((ref) {
+      return ref.watch(_quickAndStatusFilteredProviderIgnoringStatus).whenData((
+        conversations,
+      ) {
+        return {
+          for (final status in ConversationStatus.values)
+            status: conversations.where((c) => c.status == status).length,
+        };
+      });
+    });
+
+/// Same as [_quickAndStatusFilteredProvider] but ignoring the status
+/// filter itself, so status counts reflect "how many would match each
+/// status" rather than collapsing to the currently-selected one.
+final _quickAndStatusFilteredProviderIgnoringStatus =
+    Provider<AsyncValue<List<Conversation>>>((ref) {
+      final conversationsAsync = ref.watch(conversationsProvider);
+      final quickFilter = ref.watch(inboxQuickFilterProvider);
+
+      return conversationsAsync.whenData((conversations) {
+        return conversations.where((conversation) {
+          switch (quickFilter) {
+            case InboxQuickFilter.all:
+              return true;
+            case InboxQuickFilter.mine:
+              return conversation.assignedAgentName == mockCurrentAgentName;
+            case InboxQuickFilter.unassigned:
+              return conversation.assignedAgentName == null;
+          }
+        }).toList();
+      });
+    });

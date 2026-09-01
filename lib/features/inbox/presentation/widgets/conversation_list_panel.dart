@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/app_semantic_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/conversation_tile.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation_providers.dart';
-import 'conversation_filter_bar.dart';
 
-/// The searchable, filterable conversation list — the left pane on
-/// desktop, the whole screen on mobile.
-class ConversationListPane extends ConsumerWidget {
-  const ConversationListPane({super.key, this.onSelect});
+/// Region 3 of the Inbox layout: the "Chats" list — header, search, a
+/// sort control, and the conversation rows.
+class ConversationListPanel extends ConsumerWidget {
+  const ConversationListPanel({super.key, this.onSelect});
 
   final ValueChanged<String>? onSelect;
 
@@ -22,7 +23,7 @@ class ConversationListPane extends ConsumerWidget {
 
     return Column(
       children: [
-        const ConversationFilterBar(),
+        const _ConversationListHeader(),
         const Divider(height: 1),
         Expanded(
           child: conversationsAsync.when(
@@ -69,6 +70,69 @@ class ConversationListPane extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ConversationListHeader extends ConsumerWidget {
+  const _ConversationListHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colors = context.colors;
+    final newestFirst = ref.watch(inboxSortNewestFirstProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('Chats', style: theme.textTheme.titleMedium),
+              const Spacer(),
+              InkWell(
+                onTap: () =>
+                    ref.read(inboxSortNewestFirstProvider.notifier).state =
+                        !newestFirst,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        newestFirst ? 'Newest' : 'Oldest',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      Icon(
+                        Icons.expand_more,
+                        size: 16,
+                        color: colors.textMuted,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search conversations',
+              prefixIcon: Icon(Icons.search, size: 20),
+              isDense: true,
+            ),
+            onChanged: (value) =>
+                ref.read(inboxSearchQueryProvider.notifier).state = value,
+          ),
+        ],
+      ),
     );
   }
 }

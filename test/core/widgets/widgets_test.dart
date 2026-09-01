@@ -32,18 +32,25 @@ void main() {
   });
 
   group('ResponsiveLayout', () {
+    // Sets the real test viewport (not just the MediaQuery data) so it
+    // matches what ResponsiveLayout's own width read sees.
+    Future<void> setViewportSize(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+    }
+
     testWidgets('renders the mobile builder below the desktop breakpoint', (
       tester,
     ) async {
+      await setViewportSize(tester, const Size(500, 800));
       await tester.pumpWidget(
-        MediaQuery(
-          data: const MediaQueryData(size: Size(500, 800)),
-          child: MaterialApp(
-            theme: AppTheme.light,
-            home: ResponsiveLayout(
-              mobile: (_) => const Text('mobile'),
-              desktop: (_) => const Text('desktop'),
-            ),
+        MaterialApp(
+          theme: AppTheme.light,
+          home: ResponsiveLayout(
+            mobile: (_) => const Text('mobile'),
+            desktop: (_) => const Text('desktop'),
           ),
         ),
       );
@@ -55,15 +62,13 @@ void main() {
     testWidgets('renders the desktop builder at/above the breakpoint', (
       tester,
     ) async {
+      await setViewportSize(tester, const Size(1200, 800));
       await tester.pumpWidget(
-        MediaQuery(
-          data: const MediaQueryData(size: Size(1200, 800)),
-          child: MaterialApp(
-            theme: AppTheme.light,
-            home: ResponsiveLayout(
-              mobile: (_) => const Text('mobile'),
-              desktop: (_) => const Text('desktop'),
-            ),
+        MaterialApp(
+          theme: AppTheme.light,
+          home: ResponsiveLayout(
+            mobile: (_) => const Text('mobile'),
+            desktop: (_) => const Text('desktop'),
           ),
         ),
       );

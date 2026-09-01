@@ -21,5 +21,8 @@ sealed class Conversation with _$Conversation {
     String? lastMessagePreview,
     DateTime? lastMessageAt,
     @Default(0) int unreadCount,
+    // Mock-only for now — a real "assigned_to" column/UI lands in the
+    // conversation-assignment stage. Null means unassigned.
+    String? assignedAgentName,
   }) = _Conversation;
 }
