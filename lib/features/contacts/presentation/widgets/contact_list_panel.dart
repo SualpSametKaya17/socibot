@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/constants/channel_type.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
 import '../../domain/contact_providers.dart';
@@ -76,7 +78,7 @@ class ContactListPanel extends ConsumerWidget {
                 },
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const _ContactListSkeleton(),
             error: (error, stackTrace) => EmptyState(
               icon: Icons.error_outline,
               title: 'Could not load contacts',
@@ -85,6 +87,28 @@ class ContactListPanel extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Shimmer placeholder rows built from real [ContactTile]s with dummy
+/// data — same reasoning as the Inbox conversation list's skeleton.
+class _ContactListSkeleton extends StatelessWidget {
+  const _ContactListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeletonizer(
+      child: ListView.separated(
+        itemCount: 7,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) => ContactTile(
+          name: 'Loading contact name',
+          channel: ChannelType.whatsapp,
+          subtitle: 'loading@example.com',
+          lastContactedAt: DateTime.now(),
+        ),
+      ),
     );
   }
 }

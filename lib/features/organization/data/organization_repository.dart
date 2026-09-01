@@ -33,11 +33,13 @@ class MockOrganizationRepository implements OrganizationRepository {
 
   @override
   Future<List<Organization>> fetchMyOrganizations() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return [_mockOrganization];
   }
 
   @override
   Future<List<OrganizationMember>> fetchMembers(String organizationId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     final now = DateTime.now();
     return [
       OrganizationMember(

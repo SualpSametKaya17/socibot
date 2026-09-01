@@ -170,7 +170,11 @@ void main() {
       expect(find.text('Contact Information'), findsNothing);
 
       await tester.tap(find.byTooltip('View customer details'));
-      await tester.pumpAndSettle();
+      // A larger step than the default 100ms so this reliably clears the
+      // repositories' simulated network latency in one pass — pumpAndSettle
+      // stops as soon as a step produces no new scheduled frame, which a
+      // still-pending `Future.delayed` timer wouldn't necessarily cause.
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
       expect(find.text('Contact Information'), findsOneWidget);
     });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
@@ -8,10 +9,24 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
+import '../../../organization/domain/organization_member.dart';
 import '../../../organization/domain/organization_providers.dart';
 import '../../../organization/domain/organization_role.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/team_member_row.dart';
+
+/// Placeholder row content for the loading skeleton — shape only, the
+/// actual text is replaced by shimmer bones.
+final _dummyMember = OrganizationMember(
+  id: 'skeleton',
+  organizationId: 'skeleton',
+  userId: 'skeleton',
+  role: OrganizationRole.member,
+  displayName: 'Loading member name',
+  email: 'loading@example.com',
+  joinedAt: DateTime(2026),
+  lastActiveAt: DateTime.now(),
+);
 
 /// Team management — a flat enterprise table on desktop/tablet, compact
 /// structured rows on mobile. No card-per-member layout.
@@ -162,14 +177,28 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
                   ),
                 );
               },
-              loading: () => Container(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: AppRadius.mdAll,
-                  border: Border.all(color: colors.border),
+              loading: () => Skeletonizer(
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: AppRadius.mdAll,
+                    border: Border.all(color: colors.border),
+                  ),
+                  child: Column(
+                    children: [
+                      if (!isNarrow) const TeamTableHeader(),
+                      for (var i = 0; i < 4; i++) ...[
+                        isNarrow
+                            ? TeamMemberMobileRow(member: _dummyMember)
+                            : TeamTableRow(
+                                member: _dummyMember,
+                                onMoreTap: () {},
+                              ),
+                        if (i != 3) Divider(height: 1, color: colors.border),
+                      ],
+                    ],
+                  ),
                 ),
-                child: const CircularProgressIndicator(),
               ),
               error: (error, stackTrace) => EmptyState(
                 icon: Icons.error_outline,

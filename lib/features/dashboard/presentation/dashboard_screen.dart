@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
+import '../../../core/constants/channel_type.dart';
 import '../../../core/constants/route_paths.dart';
+import '../../../core/constants/status_tone.dart';
 import '../../../core/widgets/app_surface_card.dart';
 import '../../../core/widgets/channel_badge.dart';
 import '../../../core/widgets/conversation_tile.dart';
@@ -71,7 +74,7 @@ class DashboardScreen extends ConsumerWidget {
             conversationsAsync.when(
               data: (conversations) =>
                   _RecentConversationsCard(conversations: conversations),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const _RecentConversationsSkeleton(),
               error: (error, stackTrace) => EmptyState(
                 icon: Icons.error_outline,
                 title: 'Could not load conversations',
@@ -275,6 +278,41 @@ class _QuickActionsRow extends StatelessWidget {
           label: const Text('Connect a channel'),
         ),
       ],
+    );
+  }
+}
+
+/// Shimmer placeholder rows built from real [ConversationTile]s, matching
+/// [_RecentConversationsCard]'s own layout so there's no reflow once
+/// real data arrives.
+class _RecentConversationsSkeleton extends StatelessWidget {
+  const _RecentConversationsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Skeletonizer(
+      child: AppSurfaceCard(
+        clip: true,
+        child: Column(
+          children: [
+            for (var i = 0; i < 5; i++) ...[
+              ConversationTile(
+                contactName: 'Loading contact name',
+                channelBadge: const ChannelBadge(channel: ChannelType.whatsapp),
+                statusBadge: const StatusBadge(
+                  label: 'Open',
+                  tone: StatusTone.info,
+                ),
+                lastMessagePreview: 'Loading the latest message preview…',
+                lastMessageAt: DateTime.now(),
+              ),
+              if (i != 4) Divider(height: 1, color: colors.border),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

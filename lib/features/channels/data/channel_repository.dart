@@ -11,6 +11,7 @@ abstract class ChannelRepository {
 class MockChannelRepository implements ChannelRepository {
   @override
   Future<List<ChannelConnection>> fetchChannels() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return buildMockChannels();
   }
 }

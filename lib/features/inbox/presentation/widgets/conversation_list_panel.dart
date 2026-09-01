@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/constants/channel_type.dart';
+import '../../../../core/constants/status_tone.dart';
 import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/conversation_tile.dart';
 import '../../../../core/widgets/empty_state.dart';
@@ -130,7 +133,7 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                 },
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const _ConversationListSkeleton(),
             error: (error, stackTrace) => EmptyState(
               icon: Icons.error_outline,
               title: 'Could not load conversations',
@@ -381,6 +384,30 @@ class _AssignmentSummaryFooter extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shimmer placeholder rows shaped exactly like real [ConversationTile]s
+/// (built from the same widget with dummy data, not a bespoke skeleton
+/// layout) so there's no layout jump once real data arrives.
+class _ConversationListSkeleton extends StatelessWidget {
+  const _ConversationListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeletonizer(
+      child: ListView.separated(
+        itemCount: 7,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) => ConversationTile(
+          contactName: 'Loading contact name',
+          channelBadge: const ChannelBadge(channel: ChannelType.whatsapp),
+          statusBadge: const StatusBadge(label: 'Open', tone: StatusTone.info),
+          lastMessagePreview: 'Loading the latest message preview…',
+          lastMessageAt: DateTime.now(),
         ),
       ),
     );

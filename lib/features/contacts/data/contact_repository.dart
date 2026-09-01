@@ -10,6 +10,7 @@ abstract class ContactRepository {
 class MockContactRepository implements ContactRepository {
   @override
   Future<List<Contact>> fetchContacts() async {
+    await Future<void>.delayed(const Duration(milliseconds: 450));
     return buildMockContacts();
   }
 }

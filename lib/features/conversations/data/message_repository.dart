@@ -18,6 +18,7 @@ class MockMessageRepository implements MessageRepository {
     required String contactName,
     String? lastMessagePreview,
   }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     return buildMockMessages(
       conversationId: conversationId,
       contactName: contactName,

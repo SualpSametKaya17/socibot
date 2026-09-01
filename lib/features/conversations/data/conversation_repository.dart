@@ -10,6 +10,10 @@ abstract class ConversationRepository {
 class MockConversationRepository implements ConversationRepository {
   @override
   Future<List<Conversation>> fetchConversations() async {
+    // A real Supabase query has real latency; simulating it here keeps
+    // loading/skeleton states honest instead of always resolving on the
+    // next microtask.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     return buildMockConversations();
   }
 }
