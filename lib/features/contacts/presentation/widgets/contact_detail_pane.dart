@@ -23,6 +23,18 @@ class ContactDetailPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedId = ref.watch(selectedContactIdProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(
+        key: ValueKey(selectedId),
+        child: _buildBody(ref, selectedId),
+      ),
+    );
+  }
+
+  Widget _buildBody(WidgetRef ref, String? selectedId) {
     if (selectedId == null) {
       return const EmptyState(
         icon: Icons.person_outline,
@@ -83,7 +95,10 @@ class _ContactDetail extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(contact.displayName, style: AppTypography.headingSmall),
+                      Text(
+                        contact.displayName,
+                        style: AppTypography.headingSmall,
+                      ),
                       const Gap(4),
                       ChannelBadge(channel: contact.primaryChannel),
                     ],
@@ -161,9 +176,8 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: colors.textPrimary),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: colors.textPrimary),
           ),
         ),
       ],

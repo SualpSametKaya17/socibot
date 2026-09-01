@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../core/widgets/fade_slide_in.dart';
 import '../../../../core/widgets/message_bubble.dart';
 import '../../../conversations/domain/message.dart';
 import '../../../conversations/domain/message_direction.dart';
@@ -82,11 +83,15 @@ class _MessageListState extends State<MessageList> {
                 if (showDateSeparator) _DateSeparator(date: message.createdAt),
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: MessageBubble(
-                    text: message.text,
-                    time: message.createdAt,
-                    isOutgoing: message.direction == MessageDirection.outgoing,
-                    maxWidth: bubbleMaxWidth,
+                  child: FadeSlideIn(
+                    key: ValueKey(message.id),
+                    child: MessageBubble(
+                      text: message.text,
+                      time: message.createdAt,
+                      isOutgoing:
+                          message.direction == MessageDirection.outgoing,
+                      maxWidth: bubbleMaxWidth,
+                    ),
                   ),
                 ),
               ],

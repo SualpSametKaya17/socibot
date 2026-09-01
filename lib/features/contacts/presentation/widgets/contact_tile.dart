@@ -36,64 +36,72 @@ class ContactTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = context.colors;
 
-    return Material(
-      color: selected ? colors.primarySoft : Colors.transparent,
-      borderRadius: AppRadius.mdAll,
-      child: InkWell(
-        onTap: onTap,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: selected ? colors.primarySoft : Colors.transparent,
         borderRadius: AppRadius.mdAll,
-        hoverColor: colors.surfaceSecondary,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              AppAvatar(name: name, imageUrl: avatarUrl, radius: 18),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.mdAll,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.mdAll,
+          hoverColor: colors.surfaceSecondary,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                AppAvatar(name: name, imageUrl: avatarUrl, radius: 18),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colors.textSecondary,
+                        name,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ChannelBadge(channel: channel),
+                    if (lastContactedAt != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        timeago.format(lastContactedAt!, locale: 'en_short'),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colors.textMuted,
+                        ),
                       ),
                     ],
                   ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  ChannelBadge(channel: channel),
-                  if (lastContactedAt != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      timeago.format(lastContactedAt!, locale: 'en_short'),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colors.textMuted,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

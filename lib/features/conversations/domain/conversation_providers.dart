@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/channel_type.dart';
 import '../../inbox/domain/inbox_quick_filter.dart';
 import '../data/conversation_repository.dart';
 import '../data/mock/conversation_mock_data.dart';
@@ -24,6 +25,12 @@ final inboxQuickFilterProvider = StateProvider<InboxQuickFilter>(
 final inboxStatusFilterProvider = StateProvider<ConversationStatus?>(
   (ref) => null,
 );
+
+/// Filters the list to one channel (WhatsApp/Instagram/Messenger) when
+/// set — driven by the sidebar's real CHANNELS section, backed by the
+/// same [ChannelType] every conversation already carries.
+final inboxChannelFilterProvider = StateProvider<ChannelType?>((ref) => null);
+
 final selectedConversationIdProvider = StateProvider<String?>((ref) => null);
 
 /// `true` = newest first (default), `false` = oldest first.
@@ -65,12 +72,29 @@ final _quickAndStatusFilteredProvider =
       });
     });
 
-/// The list the conversation panel actually renders: [_quickAndStatusFilteredProvider]
-/// further narrowed by the search box, newest first.
+/// [_quickAndStatusFilteredProvider] further narrowed to one channel, when
+/// [inboxChannelFilterProvider] is set. Kept separate from the quick/status
+/// step so [inboxChannelCountsProvider] can scope its counts to quick+status
+/// while ignoring the channel filter itself — same pattern as
+/// [inboxStatusCountsProvider] ignoring the status filter.
+final _quickStatusAndChannelFilteredProvider =
+    Provider<AsyncValue<List<Conversation>>>((ref) {
+      final scoped = ref.watch(_quickAndStatusFilteredProvider);
+      final channelFilter = ref.watch(inboxChannelFilterProvider);
+
+      return scoped.whenData((conversations) {
+        if (channelFilter == null) return conversations;
+        return conversations.where((c) => c.channel == channelFilter).toList();
+      });
+    });
+
+/// The list the conversation panel actually renders:
+/// [_quickStatusAndChannelFilteredProvider] further narrowed by the search
+/// box, newest first.
 final filteredConversationsProvider = Provider<AsyncValue<List<Conversation>>>((
   ref,
 ) {
-  final scoped = ref.watch(_quickAndStatusFilteredProvider);
+  final scoped = ref.watch(_quickStatusAndChannelFilteredProvider);
   final query = ref.watch(inboxSearchQueryProvider).trim().toLowerCase();
   final newestFirst = ref.watch(inboxSortNewestFirstProvider);
   final unrepliedOnly = ref.watch(inboxUnrepliedOnlyProvider);
@@ -135,6 +159,21 @@ final inboxStatusCountsProvider =
         };
       });
     });
+
+/// Counts for the sidebar's CHANNELS section, scoped to the current quick
+/// and status filters (so counts stay honest when either is active),
+/// ignoring the channel filter itself — same reasoning as
+/// [inboxStatusCountsProvider].
+final inboxChannelCountsProvider = Provider<AsyncValue<Map<ChannelType, int>>>((
+  ref,
+) {
+  return ref.watch(_quickAndStatusFilteredProvider).whenData((conversations) {
+    return {
+      for (final channel in ChannelType.values)
+        channel: conversations.where((c) => c.channel == channel).length,
+    };
+  });
+});
 
 /// Same as [_quickAndStatusFilteredProvider] but ignoring the status
 /// filter itself, so status counts reflect "how many would match each

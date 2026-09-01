@@ -38,9 +38,8 @@ class DashboardScreen extends ConsumerWidget {
             organization.when(
               data: (org) => Text(
                 [?org?.name, ?email].join(' · '),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.colors.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: context.colors.textSecondary),
               ),
               loading: () => const SizedBox(
                 height: 16,
@@ -108,7 +107,9 @@ class _StatsRow extends StatelessWidget {
     return Row(
       children: [
         for (final stat in stats) ...[
-          Expanded(child: _StatCard(label: stat.label, value: stat.value)),
+          Expanded(
+            child: _StatCard(label: stat.label, value: stat.value),
+          ),
           if (stat != stats.last) const Gap(AppSpacing.md),
         ],
       ],
@@ -123,11 +124,17 @@ class _StatsRowSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        Expanded(child: _StatCard(label: '—', value: '—')),
+        Expanded(
+          child: _StatCard(label: '—', value: '—'),
+        ),
         Gap(AppSpacing.md),
-        Expanded(child: _StatCard(label: '—', value: '—')),
+        Expanded(
+          child: _StatCard(label: '—', value: '—'),
+        ),
         Gap(AppSpacing.md),
-        Expanded(child: _StatCard(label: '—', value: '—')),
+        Expanded(
+          child: _StatCard(label: '—', value: '—'),
+        ),
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/fade_slide_in.dart';
 import '../../domain/contact_providers.dart';
 import 'contact_tile.dart';
 
@@ -56,18 +57,21 @@ class ContactListPanel extends ConsumerWidget {
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final contact = contacts[index];
-                  return ContactTile(
-                    name: contact.displayName,
-                    avatarUrl: contact.avatarUrl,
-                    channel: contact.primaryChannel,
-                    subtitle: contact.email ?? contact.phone,
-                    lastContactedAt: contact.lastContactedAt,
-                    selected: contact.id == selectedId,
-                    onTap: () {
-                      ref.read(selectedContactIdProvider.notifier).state =
-                          contact.id;
-                      onSelect?.call(contact.id);
-                    },
+                  return FadeSlideIn(
+                    delay: Duration(milliseconds: 20 * index.clamp(0, 10)),
+                    child: ContactTile(
+                      name: contact.displayName,
+                      avatarUrl: contact.avatarUrl,
+                      channel: contact.primaryChannel,
+                      subtitle: contact.email ?? contact.phone,
+                      lastContactedAt: contact.lastContactedAt,
+                      selected: contact.id == selectedId,
+                      onTap: () {
+                        ref.read(selectedContactIdProvider.notifier).state =
+                            contact.id;
+                        onSelect?.call(contact.id);
+                      },
+                    ),
                   );
                 },
               );

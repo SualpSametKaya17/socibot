@@ -6,6 +6,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/conversation_tile.dart';
 import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/fade_slide_in.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 
@@ -40,23 +41,28 @@ class ConversationListPanel extends ConsumerWidget {
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final conversation = conversations[index];
-                  return ConversationTile(
-                    contactName: conversation.contactName,
-                    contactAvatarUrl: conversation.contactAvatarUrl,
-                    channelBadge: ChannelBadge(channel: conversation.channel),
-                    statusBadge: StatusBadge(
-                      label: conversation.status.label,
-                      tone: conversation.status.tone,
+                  return FadeSlideIn(
+                    delay: Duration(milliseconds: 20 * index.clamp(0, 10)),
+                    child: ConversationTile(
+                      contactName: conversation.contactName,
+                      contactAvatarUrl: conversation.contactAvatarUrl,
+                      channelBadge: ChannelBadge(channel: conversation.channel),
+                      statusBadge: StatusBadge(
+                        label: conversation.status.label,
+                        tone: conversation.status.tone,
+                      ),
+                      lastMessagePreview: conversation.lastMessagePreview,
+                      lastMessageAt: conversation.lastMessageAt,
+                      unreadCount: conversation.unreadCount,
+                      selected: conversation.id == selectedId,
+                      onTap: () {
+                        ref
+                                .read(selectedConversationIdProvider.notifier)
+                                .state =
+                            conversation.id;
+                        onSelect?.call(conversation.id);
+                      },
                     ),
-                    lastMessagePreview: conversation.lastMessagePreview,
-                    lastMessageAt: conversation.lastMessageAt,
-                    unreadCount: conversation.unreadCount,
-                    selected: conversation.id == selectedId,
-                    onTap: () {
-                      ref.read(selectedConversationIdProvider.notifier).state =
-                          conversation.id;
-                      onSelect?.call(conversation.id);
-                    },
                   );
                 },
               );

@@ -148,6 +148,36 @@ void main() {
       expect(find.text('Diego Fernandez'), findsNothing);
     });
 
+    testWidgets('CHANNELS filter in the sidebar narrows the list by channel', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(InboxFilterSidebar),
+          matching: find.text('WhatsApp'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Elena Martinez is WhatsApp; Marcus Chen is Instagram.
+      expect(find.text('Elena Martinez'), findsOneWidget);
+      expect(find.text('Marcus Chen'), findsNothing);
+
+      // Tapping the same channel again clears the filter.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(InboxFilterSidebar),
+          matching: find.text('WhatsApp'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Marcus Chen'), findsOneWidget);
+    });
+
     testWidgets('composer send button enables once text is entered', (
       tester,
     ) async {

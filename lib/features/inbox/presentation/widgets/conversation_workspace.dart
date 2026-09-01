@@ -42,6 +42,18 @@ class _ConversationWorkspaceState extends ConsumerState<ConversationWorkspace> {
   @override
   Widget build(BuildContext context) {
     final selectedId = ref.watch(selectedConversationIdProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(
+        key: ValueKey(selectedId),
+        child: _buildBody(selectedId),
+      ),
+    );
+  }
+
+  Widget _buildBody(String? selectedId) {
     if (selectedId == null) {
       return const EmptyState(
         icon: Icons.forum_outlined,
