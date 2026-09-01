@@ -8,6 +8,7 @@ import '../../core/services/supabase/supabase_providers.dart';
 import '../../features/auth/domain/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/organization/domain/organization_providers.dart';
 import 'go_router_refresh_stream.dart';
 
 /// Root GoRouter configuration.
@@ -79,6 +80,7 @@ class _HomePlaceholderScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final email = ref.watch(authRepositoryProvider).currentUser?.email;
+    final organization = ref.watch(currentOrganizationProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Socibot')),
@@ -95,6 +97,25 @@ class _HomePlaceholderScreen extends ConsumerWidget {
             Text(
               'Signed in as ${email ?? 'unknown user'}',
               style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 4),
+            organization.when(
+              data: (org) => Text(
+                'Organization: ${org?.name ?? 'none'}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                child: SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              error: (error, stackTrace) => Text(
+                'Could not load organization',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
