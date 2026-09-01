@@ -44,24 +44,21 @@ class ConversationTile extends StatelessWidget {
     final colors = context.colors;
     final isUnread = unreadCount > 0;
 
-    // Selected state reads as a slim colored edge + soft tint — not a
-    // boxed, bordered card. Quieter and more in line with how elegant
-    // list UIs (Slack, Notion, Superhuman) mark the active row.
+    // Selected state reads as a slim colored edge + soft tint across a
+    // flat rectangle — not a rounded, boxed card. Rows in a list don't
+    // get corners; only the hover ripple stays (subtly) rounded.
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
         color: selected ? colors.primarySoft : Colors.transparent,
-        borderRadius: AppRadius.smAll,
       ),
       child: Stack(
         children: [
           Material(
             color: Colors.transparent,
-            borderRadius: AppRadius.smAll,
             child: InkWell(
               onTap: onTap,
-              borderRadius: AppRadius.smAll,
               hoverColor: colors.surfaceSecondary,
               splashColor: colors.primarySoft,
               child: Padding(

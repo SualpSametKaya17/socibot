@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/theme/app_radius.dart';
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
@@ -10,6 +11,7 @@ import '../../../core/constants/route_paths.dart';
 import '../../../core/widgets/channel_badge.dart';
 import '../../../core/widgets/conversation_tile.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/domain/auth_providers.dart';
 import '../../conversations/domain/conversation.dart';
@@ -99,16 +101,36 @@ class _StatsRow extends StatelessWidget {
         .length;
 
     final stats = [
-      (label: 'Open conversations', value: '$open'),
-      (label: 'Unread', value: '$unread'),
-      (label: 'Resolved', value: '$resolved'),
+      (
+        label: 'Open conversations',
+        value: '$open',
+        icon: Icons.forum_outlined,
+        color: context.colors.primary,
+      ),
+      (
+        label: 'Unread',
+        value: '$unread',
+        icon: Icons.mark_email_unread_outlined,
+        color: context.colors.warning,
+      ),
+      (
+        label: 'Resolved',
+        value: '$resolved',
+        icon: Icons.task_alt_outlined,
+        color: context.colors.success,
+      ),
     ];
 
     return Row(
       children: [
         for (final stat in stats) ...[
           Expanded(
-            child: _StatCard(label: stat.label, value: stat.value),
+            child: _StatCard(
+              label: stat.label,
+              value: stat.value,
+              icon: stat.icon,
+              color: stat.color,
+            ),
           ),
           if (stat != stats.last) const Gap(AppSpacing.md),
         ],
@@ -122,18 +144,34 @@ class _StatsRowSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final colors = context.colors;
+    return Row(
       children: [
         Expanded(
-          child: _StatCard(label: '—', value: '—'),
+          child: _StatCard(
+            label: '—',
+            value: '—',
+            icon: Icons.forum_outlined,
+            color: colors.textMuted,
+          ),
         ),
-        Gap(AppSpacing.md),
+        const Gap(AppSpacing.md),
         Expanded(
-          child: _StatCard(label: '—', value: '—'),
+          child: _StatCard(
+            label: '—',
+            value: '—',
+            icon: Icons.mark_email_unread_outlined,
+            color: colors.textMuted,
+          ),
         ),
-        Gap(AppSpacing.md),
+        const Gap(AppSpacing.md),
         Expanded(
-          child: _StatCard(label: '—', value: '—'),
+          child: _StatCard(
+            label: '—',
+            value: '—',
+            icon: Icons.task_alt_outlined,
+            color: colors.textMuted,
+          ),
         ),
       ],
     );
@@ -141,29 +179,58 @@ class _StatsRowSkeleton extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   final String label;
   final String value;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: AppTypography.bodySmall.copyWith(
-                color: context.colors.textSecondary,
+    final colors = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: AppRadius.mdAll,
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 16, color: color),
               ),
-            ),
-            const Gap(AppSpacing.xs),
-            Text(value, style: AppTypography.headingMedium),
-          ],
-        ),
+              const Gap(AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(AppSpacing.md),
+          Text(value, style: AppTypography.headingMedium),
+        ],
       ),
     );
   }
@@ -200,9 +267,15 @@ class _RecentConversationsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+
     if (conversations.isEmpty) {
-      return const Card(
-        child: EmptyState(
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: colors.border),
+        ),
+        child: const EmptyState(
           icon: Icons.forum_outlined,
           title: 'No conversations yet',
         ),
@@ -218,30 +291,39 @@ class _RecentConversationsCard extends ConsumerWidget {
       });
     final topFive = recent.take(5).toList();
 
-    return Card(
+    return Container(
       clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: AppRadius.mdAll,
+        border: Border.all(color: colors.border),
+      ),
       child: Column(
         children: [
-          for (final conversation in topFive) ...[
-            ConversationTile(
-              contactName: conversation.contactName,
-              contactAvatarUrl: conversation.contactAvatarUrl,
-              channelBadge: ChannelBadge(channel: conversation.channel),
-              statusBadge: StatusBadge(
-                label: conversation.status.label,
-                tone: conversation.status.tone,
+          for (var i = 0; i < topFive.length; i++) ...[
+            FadeSlideIn(
+              delay: Duration(milliseconds: 25 * i),
+              child: ConversationTile(
+                contactName: topFive[i].contactName,
+                contactAvatarUrl: topFive[i].contactAvatarUrl,
+                channelBadge: ChannelBadge(channel: topFive[i].channel),
+                statusBadge: StatusBadge(
+                  label: topFive[i].status.label,
+                  tone: topFive[i].status.tone,
+                ),
+                lastMessagePreview: topFive[i].lastMessagePreview,
+                lastMessageAt: topFive[i].lastMessageAt,
+                assignedAgentName: topFive[i].assignedAgentName,
+                unreadCount: topFive[i].unreadCount,
+                onTap: () {
+                  ref.read(selectedConversationIdProvider.notifier).state =
+                      topFive[i].id;
+                  context.go(RoutePaths.inbox);
+                },
               ),
-              lastMessagePreview: conversation.lastMessagePreview,
-              lastMessageAt: conversation.lastMessageAt,
-              assignedAgentName: conversation.assignedAgentName,
-              unreadCount: conversation.unreadCount,
-              onTap: () {
-                ref.read(selectedConversationIdProvider.notifier).state =
-                    conversation.id;
-                context.go(RoutePaths.inbox);
-              },
             ),
-            if (conversation != topFive.last) const Divider(height: 1),
+            if (i != topFive.length - 1)
+              Divider(height: 1, color: colors.border),
           ],
         ],
       ),

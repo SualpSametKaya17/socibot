@@ -103,35 +103,9 @@ class _MessageComposerState extends State<MessageComposer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _ComposerTabs(
-                    internalNote: _internalNote,
-                    onChanged: (value) => setState(() => _internalNote = value),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Flexible(
-                  child: Tooltip(
-                    message: 'Tickets are coming in a later stage',
-                    child: TextButton(
-                      onPressed: null,
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xs,
-                        ),
-                        minimumSize: const Size(0, 28),
-                      ),
-                      child: const Text(
-                        'Create Ticket',
-                        style: TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            _ComposerTabs(
+              internalNote: _internalNote,
+              onChanged: (value) => setState(() => _internalNote = value),
             ),
             const SizedBox(height: AppSpacing.xs),
             if (_attachedFileName != null)

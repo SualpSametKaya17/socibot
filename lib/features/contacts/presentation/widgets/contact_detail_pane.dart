@@ -9,14 +9,17 @@ import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/route_paths.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/channel_badge.dart';
+import '../../../../core/widgets/detail_field_row.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 import '../../domain/contact.dart';
 import '../../domain/contact_providers.dart';
 
 /// Region-4-equivalent for Contacts: the selected contact's details and
-/// a way to jump to their conversation. Shows an empty state when
-/// nothing is selected.
+/// a way to jump to their conversation. Shares its visual language
+/// (icon-chip field rows, 8px card radius) with the Inbox's
+/// CustomerDetailPanel rather than having its own older style. Shows an
+/// empty state when nothing is selected.
 class ContactDetailPane extends ConsumerWidget {
   const ContactDetailPane({super.key});
 
@@ -99,39 +102,69 @@ class _ContactDetail extends StatelessWidget {
                         contact.displayName,
                         style: AppTypography.headingSmall,
                       ),
-                      const Gap(4),
-                      ChannelBadge(channel: contact.primaryChannel),
+                      if (contact.company != null) ...[
+                        const Gap(2),
+                        Text(
+                          contact.company!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colors.textSecondary),
+                        ),
+                      ],
+                      const Gap(6),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ChannelBadge(channel: contact.primaryChannel),
+                          if (contact.location != null) ...[
+                            const Gap(AppSpacing.sm),
+                            Icon(
+                              Icons.place_outlined,
+                              size: 12,
+                              color: colors.textMuted,
+                            ),
+                            const Gap(2),
+                            Text(
+                              contact.location!,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: colors.textMuted),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
             const Gap(AppSpacing.xl),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'CONTACT INFO',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.textMuted,
-                        letterSpacing: 0.4,
-                      ),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CONTACT INFORMATION',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colors.textMuted,
+                      letterSpacing: 0.4,
+                      fontWeight: FontWeight.w700,
                     ),
-                    const Gap(AppSpacing.md),
-                    _InfoRow(
-                      icon: Icons.email_outlined,
-                      label: contact.email ?? 'No email on file',
-                    ),
-                    const Gap(AppSpacing.sm),
-                    _InfoRow(
-                      icon: Icons.phone_outlined,
-                      label: contact.phone ?? 'No phone on file',
-                    ),
-                  ],
-                ),
+                  ),
+                  const Gap(AppSpacing.md),
+                  DetailFieldRow(
+                    icon: Icons.email_outlined,
+                    label: contact.email ?? 'No email on file',
+                  ),
+                  const Gap(AppSpacing.sm),
+                  DetailFieldRow(
+                    icon: Icons.phone_outlined,
+                    label: contact.phone ?? 'No phone on file',
+                  ),
+                ],
               ),
             ),
             const Gap(AppSpacing.lg),
@@ -156,31 +189,6 @@ class _ContactDetail extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: colors.textMuted),
-        const Gap(AppSpacing.sm),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: colors.textPrimary),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/widgets/detail_field_row.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../channels/domain/channel_providers.dart';
 import '../../../contacts/domain/contact.dart';
@@ -124,33 +125,34 @@ class _CustomerDetailContent extends ConsumerWidget {
                         fallbackAvatarUrl: conversation.contactAvatarUrl,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      _SectionCard(
-                        title: 'Contact Information',
-                        child: _ContactInformation(contact: contact),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _SectionCard(
-                        title: 'Agent Handled',
-                        child: _AgentHandled(
-                          agentName: conversation.assignedAgentName,
-                          since: conversation.createdAt,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      const _SectionCard(
-                        title: 'Tags',
-                        trailing: _DisabledAddIcon(
-                          tooltip: 'Tagging is coming in a later stage',
-                        ),
-                        child: _EmptySectionNote(text: 'No tags yet'),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _SectionCard(
-                        title: 'Conversation room details',
-                        child: _RoomDetails(
-                          conversation: conversation,
-                          channelAccount: channelAccount,
-                        ),
+                      _DetailCard(
+                        sections: [
+                          _Section(
+                            title: 'Contact Information',
+                            child: _ContactInformation(contact: contact),
+                          ),
+                          _Section(
+                            title: 'Agent Handled',
+                            child: _AgentHandled(
+                              agentName: conversation.assignedAgentName,
+                              since: conversation.createdAt,
+                            ),
+                          ),
+                          const _Section(
+                            title: 'Tags',
+                            trailing: _DisabledAddIcon(
+                              tooltip: 'Tagging is coming in a later stage',
+                            ),
+                            child: _EmptySectionNote(text: 'No tags yet'),
+                          ),
+                          _Section(
+                            title: 'Conversation room details',
+                            child: _RoomDetails(
+                              conversation: conversation,
+                              channelAccount: channelAccount,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -303,43 +305,68 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child, this.trailing});
+/// Plain data for one subsection of [_DetailCard] — kept separate from
+/// the widget that renders it so [_DetailCard] can insert its own
+/// dividers between sections without each section drawing its own box.
+class _Section {
+  const _Section({required this.title, required this.child, this.trailing});
 
   final String title;
   final Widget child;
   final Widget? trailing;
+}
+
+/// One continuous bordered panel holding every subsection, divided by
+/// hairlines instead of each subsection getting its own bordered box —
+/// reads as a single coherent detail panel (Linear/Intercom-style)
+/// rather than a stack of repeated cards.
+class _DetailCard extends StatelessWidget {
+  const _DetailCard({required this.sections});
+
+  final List<_Section> sections;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         borderRadius: _cardRadius,
         border: Border.all(color: colors.border),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.textMuted,
-                    letterSpacing: 0.4,
-                    fontWeight: FontWeight.w700,
+          for (final section in sections) ...[
+            if (section != sections.first)
+              Divider(height: 1, color: colors.border),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          section.title,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colors.textMuted,
+                                letterSpacing: 0.4,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                      ?section.trailing,
+                    ],
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.sm),
+                  section.child,
+                ],
               ),
-              ?trailing,
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          child,
+            ),
+          ],
         ],
       ),
     );
@@ -390,40 +417,11 @@ class _ContactInformation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (contact!.phone != null)
-          _InfoRow(icon: Icons.phone_outlined, label: contact!.phone!),
+          DetailFieldRow(icon: Icons.phone_outlined, label: contact!.phone!),
         if (contact!.phone != null && contact!.email != null)
-          const SizedBox(height: AppSpacing.xs + 2),
+          const SizedBox(height: AppSpacing.sm),
         if (contact!.email != null)
-          _InfoRow(icon: Icons.email_outlined, label: contact!.email!),
-      ],
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: colors.textMuted),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Tooltip(
-            message: label,
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: colors.textPrimary),
-            ),
-          ),
-        ),
+          DetailFieldRow(icon: Icons.email_outlined, label: contact!.email!),
       ],
     );
   }
