@@ -199,7 +199,10 @@ void main() {
       expect(tester.widget<IconButton>(sendButtonFinder).onPressed, isNull);
 
       await tester.enterText(
-        find.widgetWithText(TextField, 'Type a message...'),
+        find.widgetWithText(
+          TextField,
+          'Type a message or type "/" to use template...',
+        ),
         'Thanks for reaching out!',
       );
       await tester.pump();

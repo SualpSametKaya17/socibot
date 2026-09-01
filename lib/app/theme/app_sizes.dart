@@ -9,7 +9,11 @@ class AppSizes {
   /// The global nav rail's fixed icon-only width on desktop/tablet.
   static const double navRailWidth = 60;
 
-  static const double topBarHeight = 60;
+  /// The desktop main application sidebar's width — labeled, grouped
+  /// navigation (GENERAL/SETTINGS), narrower than the mobile drawer.
+  static const double mainSidebarWidth = 172;
+
+  static const double topBarHeight = 52;
 
   static const double controlHeight = 44;
   static const double borderWidth = 1;

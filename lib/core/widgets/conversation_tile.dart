@@ -84,9 +84,10 @@ class ConversationTile extends StatelessWidget {
                             child: Text(
                               contactName,
                               style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 13,
                                 fontWeight: isUnread
                                     ? FontWeight.w700
-                                    : FontWeight.w500,
+                                    : FontWeight.w600,
                                 color: colors.textPrimary,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -127,6 +128,7 @@ class ConversationTile extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: 12,
                                   color: colors.textSecondary,
                                   fontWeight: isUnread
                                       ? FontWeight.w600

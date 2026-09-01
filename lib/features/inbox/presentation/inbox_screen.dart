@@ -8,15 +8,18 @@ import 'widgets/conversation_workspace.dart';
 import 'widgets/customer_detail_panel.dart';
 
 /// The Inbox screen. Composes four of the layout's five regions (the
-/// fifth, the app's own navigation rail, is [AppShell] — outside this
-/// feature's scope):
+/// fifth, the app's own main application sidebar, is [AppShell] —
+/// outside this feature's scope):
 ///
-/// desktop: [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel]
-/// tablet: [ConversationListPanel] | [ConversationWorkspace] (rail and customer detail fold away)
+/// wide desktop (>=1350px total app width): [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel]
+/// medium desktop: [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel] (channel rail collapses)
+/// tablet: [ConversationListPanel] | [ConversationWorkspace] (customer detail hidden too)
 /// mobile: [ConversationListPanel] only; selecting a conversation pushes
 /// [ConversationWorkspace] full-screen.
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
+
+  static const _wideDesktopWidth = 1350.0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,17 +45,24 @@ class InboxScreen extends StatelessWidget {
           Expanded(child: ConversationWorkspace()),
         ],
       ),
-      desktop: (context) => const Row(
-        children: [
-          SizedBox(width: 52, child: ChannelRail()),
-          _VerticalBorder(),
-          SizedBox(width: 300, child: ConversationListPanel()),
-          _VerticalBorder(),
-          Expanded(child: ConversationWorkspace()),
-          _VerticalBorder(),
-          SizedBox(width: 232, child: CustomerDetailPanel()),
-        ],
-      ),
+      desktop: (context) {
+        // Total application width, not this screen's local share of it —
+        // consistent with how [ResponsiveLayout] itself decides.
+        final isWide = MediaQuery.sizeOf(context).width >= _wideDesktopWidth;
+        return Row(
+          children: [
+            if (isWide) ...[
+              const SizedBox(width: 52, child: ChannelRail()),
+              const _VerticalBorder(),
+            ],
+            const SizedBox(width: 310, child: ConversationListPanel()),
+            const _VerticalBorder(),
+            const Expanded(child: ConversationWorkspace()),
+            const _VerticalBorder(),
+            const SizedBox(width: 252, child: CustomerDetailPanel()),
+          ],
+        );
+      },
     );
   }
 }

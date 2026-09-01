@@ -51,7 +51,10 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
           child: Row(
             children: [
               Expanded(
-                child: Text(channelLabel, style: AppTypography.headingSmall),
+                child: Text(
+                  channelLabel,
+                  style: AppTypography.headingSmall.copyWith(fontSize: 14),
+                ),
               ),
               IconButton(
                 tooltip: 'Search conversations',

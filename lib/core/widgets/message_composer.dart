@@ -96,13 +96,42 @@ class _MessageComposerState extends State<MessageComposer> {
         border: Border(top: BorderSide(color: colors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: AppSpacing.sm,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ComposerTabs(
-              internalNote: _internalNote,
-              onChanged: (value) => setState(() => _internalNote = value),
+            Row(
+              children: [
+                Expanded(
+                  child: _ComposerTabs(
+                    internalNote: _internalNote,
+                    onChanged: (value) => setState(() => _internalNote = value),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: Tooltip(
+                    message: 'Tickets are coming in a later stage',
+                    child: TextButton(
+                      onPressed: null,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                        ),
+                        minimumSize: const Size(0, 28),
+                      ),
+                      child: const Text(
+                        'Create Ticket',
+                        style: TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.xs),
             if (_attachedFileName != null)
@@ -114,68 +143,70 @@ class _MessageComposerState extends State<MessageComposer> {
                   onDeleted: () => setState(() => _attachedFileName = null),
                 ),
               ),
+            TextField(
+              controller: _controller,
+              minLines: 2,
+              maxLines: 5,
+              style: const TextStyle(fontSize: 13),
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                hintStyle: const TextStyle(fontSize: 13),
+                hintText: _internalNote
+                    ? 'Add an internal note — only your team can see this...'
+                    : 'Type a message or type "/" to use template...',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
                 IconButton(
                   tooltip: 'Attach a file',
-                  icon: const Icon(Icons.attach_file_outlined, size: 20),
+                  icon: const Icon(Icons.attach_file_outlined, size: 18),
                   onPressed: _pickAttachment,
                 ),
                 IconButton(
                   tooltip: 'Emoji',
-                  icon: const Icon(Icons.emoji_emotions_outlined, size: 20),
+                  icon: const Icon(Icons.emoji_emotions_outlined, size: 18),
                   onPressed: _pickEmoji,
                 ),
                 IconButton(
                   tooltip: 'Saved replies (coming soon)',
-                  icon: const Icon(Icons.bolt_outlined, size: 20),
+                  icon: const Icon(Icons.bolt_outlined, size: 18),
                   onPressed: null,
                 ),
                 const Spacer(),
-                Tooltip(
-                  message: 'AI Assist — coming in a later phase',
-                  child: TextButton.icon(
-                    onPressed: null,
-                    icon: const Icon(Icons.auto_awesome_outlined, size: 16),
-                    label: const Text('AI Assist'),
-                  ),
+                // Icon-only: a subtle secondary action that doesn't visually
+                // compete with Send for width or attention.
+                const IconButton(
+                  tooltip: 'AI Assist — coming in a later phase',
+                  icon: Icon(Icons.auto_awesome_outlined, size: 16),
+                  onPressed: null,
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    minLines: 1,
-                    maxLines: 5,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(),
-                    decoration: InputDecoration(
-                      hintText: _internalNote
-                          ? 'Add an internal note — only your team can see this...'
-                          : 'Type a message...',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.xs),
                 Tooltip(
                   message: _internalNote
                       ? 'Internal notes are coming in a later stage'
                       : 'Send',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _hasText && !_internalNote
-                          ? colors.primary
-                          : colors.textMuted.withValues(alpha: 0.3),
-                      borderRadius: AppRadius.mdAll,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.send_rounded, size: 18),
-                      color: Colors.white,
-                      onPressed: _hasText && !_internalNote ? _send : null,
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: _hasText && !_internalNote
+                            ? colors.primary
+                            : colors.textMuted.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.send_rounded, size: 17),
+                        color: Colors.white,
+                        onPressed: _hasText && !_internalNote ? _send : null,
+                      ),
                     ),
                   ),
                 ),
@@ -201,6 +232,7 @@ class _ComposerTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         _ComposerTab(
           label: 'Reply',
@@ -208,10 +240,12 @@ class _ComposerTabs extends StatelessWidget {
           onTap: () => onChanged(false),
         ),
         const SizedBox(width: AppSpacing.md),
-        _ComposerTab(
-          label: 'Internal Note',
-          selected: internalNote,
-          onTap: () => onChanged(true),
+        Flexible(
+          child: _ComposerTab(
+            label: 'Internal Note',
+            selected: internalNote,
+            onTap: () => onChanged(true),
+          ),
         ),
       ],
     );
@@ -243,6 +277,8 @@ class _ComposerTab extends StatelessWidget {
           children: [
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

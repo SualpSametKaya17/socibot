@@ -14,6 +14,11 @@ import '../../../contacts/domain/contact_providers.dart';
 import '../../../conversations/domain/conversation.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 
+/// Enterprise software reads as flatter/less-rounded than a consumer
+/// mobile card interface — a tighter radius than the shared
+/// [AppRadius.lg] used for cards elsewhere, specific to this panel.
+const _cardRadius = BorderRadius.all(Radius.circular(8));
+
 /// Region 5: the selected conversation's customer — profile, contact
 /// info, who's handling it, tags, and room metadata. Resolves the
 /// selected conversation the same way [ConversationWorkspace] does, and
@@ -118,12 +123,12 @@ class _CustomerDetailContent extends ConsumerWidget {
                         fallbackName: conversation.contactName,
                         fallbackAvatarUrl: conversation.contactAvatarUrl,
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.sm),
                       _SectionCard(
                         title: 'Contact Information',
                         child: _ContactInformation(contact: contact),
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.sm),
                       _SectionCard(
                         title: 'Agent Handled',
                         child: _AgentHandled(
@@ -131,7 +136,7 @@ class _CustomerDetailContent extends ConsumerWidget {
                           since: conversation.createdAt,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.sm),
                       const _SectionCard(
                         title: 'Tags',
                         trailing: _DisabledAddIcon(
@@ -139,7 +144,7 @@ class _CustomerDetailContent extends ConsumerWidget {
                         ),
                         child: _EmptySectionNote(text: 'No tags yet'),
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.sm),
                       _SectionCard(
                         title: 'Conversation room details',
                         child: _RoomDetails(
@@ -245,7 +250,7 @@ class _ProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        borderRadius: AppRadius.lgAll,
+        borderRadius: _cardRadius,
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -312,7 +317,7 @@ class _SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        borderRadius: AppRadius.lgAll,
+        borderRadius: _cardRadius,
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -409,11 +414,14 @@ class _InfoRow extends StatelessWidget {
         Icon(icon, size: 16, color: colors.textMuted),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Text(
-            label,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: colors.textPrimary),
+          child: Tooltip(
+            message: label,
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: colors.textPrimary),
+            ),
           ),
         ),
       ],

@@ -66,9 +66,8 @@ class _DesktopShell extends ConsumerWidget {
       body: Row(
         children: [
           _SidebarFrame(
-            width: AppSizes.navRailWidth,
-            child: _ShellSidebarContent(
-              extended: false,
+            width: AppSizes.mainSidebarWidth,
+            child: _DesktopNavList(
               selectedIndex: navigationShell.currentIndex,
               unreadCount: unreadCount,
               onDestinationSelected: onDestinationSelected,
@@ -83,6 +82,207 @@ class _DesktopShell extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Desktop's main application sidebar: a compact, grouped, labeled nav
+/// list (not [AppSidebar]/[NavigationRail] — those stay for the mobile
+/// drawer, unchanged) so row height/icon/label sizing and the GENERAL/
+/// SETTINGS grouping can be controlled precisely. Only destinations that
+/// actually exist appear — no placeholder Tickets/Campaigns/Reports
+/// rows for features this app doesn't have yet.
+class _DesktopNavList extends StatelessWidget {
+  const _DesktopNavList({
+    required this.selectedIndex,
+    required this.unreadCount,
+    required this.onDestinationSelected,
+  });
+
+  final int selectedIndex;
+  final int unreadCount;
+  final ValueChanged<int> onDestinationSelected;
+
+  static const _generalIndexes = [0, 1, 2]; // Dashboard, Inbox, Contacts
+  static const _settingsIndexes = [3, 4]; // Channels, Settings
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.md),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: _WorkspaceSelector(),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  child: _SectionCaption('GENERAL'),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                for (final i in _generalIndexes) _buildRow(i),
+                const SizedBox(height: AppSpacing.md),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  child: _SectionCaption('SETTINGS'),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                for (final i in _settingsIndexes) _buildRow(i),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: _SidebarFooter(expanded: true),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRow(int index) {
+    final d = shellDestinations[index];
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 1,
+      ),
+      child: _DesktopNavRow(
+        icon: d.icon,
+        selectedIcon: d.selectedIcon,
+        label: d.label,
+        selected: selectedIndex == index,
+        badgeCount: d.path == RoutePaths.inbox ? unreadCount : null,
+        onTap: () => onDestinationSelected(index),
+      ),
+    );
+  }
+}
+
+class _WorkspaceSelector extends StatelessWidget {
+  const _WorkspaceSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Tooltip(
+      message: 'Switching workspaces is coming in a later stage',
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.forum_outlined, size: 16, color: colors.primary),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                'Socibot',
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelMedium.copyWith(
+                  color: colors.textPrimary,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Icon(Icons.unfold_more, size: 14, color: colors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopNavRow extends StatelessWidget {
+  const _DesktopNavRow({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.badgeCount,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final int? badgeCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Material(
+      color: selected ? colors.primarySoft : Colors.transparent,
+      borderRadius: AppRadius.smAll,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.smAll,
+        hoverColor: colors.surfaceSecondary,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 8,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected ? selectedIcon : icon,
+                size: 16,
+                color: selected ? colors.primary : colors.textSecondary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected ? colors.primary : colors.textSecondary,
+                  ),
+                ),
+              ),
+              if (badgeCount != null && badgeCount! > 0) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.error,
+                    borderRadius: AppRadius.fullAll,
+                  ),
+                  child: Text(
+                    badgeCount! > 99 ? '99+' : '$badgeCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -123,11 +323,10 @@ class _MobileShell extends ConsumerWidget {
   }
 }
 
-/// Shared nav rail content for both desktop's narrow icon-only sidebar
-/// and mobile's full-width labeled drawer: brand header, destinations
-/// (Inbox carries a real unread badge, icon-only on desktop so only the
-/// icons — with tooltips — show there), and the account/sign-out footer
-/// pinned to the bottom.
+/// Mobile drawer's nav rail content (via [AppSidebar]/[NavigationRail]):
+/// brand header, destinations (Inbox carries a real unread badge), and
+/// the account/sign-out footer pinned to the bottom. Desktop uses
+/// [_DesktopNavList] instead — a bespoke grouped list, not this.
 class _ShellSidebarContent extends StatelessWidget {
   const _ShellSidebarContent({
     required this.extended,

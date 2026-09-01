@@ -31,6 +31,8 @@ class MessageList extends StatefulWidget {
 }
 
 class _MessageListState extends State<MessageList> {
+  static const _maxContentWidth = 900.0;
+
   final _scrollController = ScrollController();
 
   @override
@@ -75,45 +77,72 @@ class _MessageListState extends State<MessageList> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bubbleMaxWidth = constraints.maxWidth * 0.65;
+        // A readable central corridor rather than letting bubbles stretch
+        // across the whole workspace — capped, not hardcoded, so it still
+        // shrinks on a narrower workspace.
+        final contentWidth = constraints.maxWidth > _maxContentWidth
+            ? _maxContentWidth
+            : constraints.maxWidth;
+        final bubbleMaxWidth = contentWidth * 0.72;
 
-        return ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            final message = messages[index];
-            final showDateSeparator =
-                index == 0 ||
-                !_isSameDay(messages[index - 1].createdAt, message.createdAt);
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: _maxContentWidth),
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final previous = index == 0 ? null : messages[index - 1];
+                final showDateSeparator =
+                    previous == null ||
+                    !_isSameDay(previous.createdAt, message.createdAt);
+                final sameGroupAsPrevious =
+                    !showDateSeparator &&
+                    previous.direction == message.direction &&
+                    message.createdAt
+                            .difference(previous.createdAt)
+                            .inMinutes
+                            .abs() <
+                        5;
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (index == 0 && widget.assignedAgentName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SystemMessage(
-                      text: 'Assigned to ${widget.assignedAgentName}',
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (index == 0 && widget.assignedAgentName != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: SystemMessage(
+                          text: 'Assigned to ${widget.assignedAgentName}',
+                        ),
+                      ),
+                    if (showDateSeparator)
+                      _DateSeparator(date: message.createdAt),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: index == 0 || showDateSeparator
+                            ? 0
+                            : sameGroupAsPrevious
+                            ? 7
+                            : 19,
+                      ),
+                      child: FadeSlideIn(
+                        key: ValueKey(message.id),
+                        child: MessageBubble(
+                          text: message.text,
+                          time: message.createdAt,
+                          isOutgoing:
+                              message.direction == MessageDirection.outgoing,
+                          maxWidth: bubbleMaxWidth,
+                        ),
+                      ),
                     ),
-                  ),
-                if (showDateSeparator) _DateSeparator(date: message.createdAt),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: FadeSlideIn(
-                    key: ValueKey(message.id),
-                    child: MessageBubble(
-                      text: message.text,
-                      time: message.createdAt,
-                      isOutgoing:
-                          message.direction == MessageDirection.outgoing,
-                      maxWidth: bubbleMaxWidth,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+                  ],
+                );
+              },
+            ),
+          ),
         );
       },
     );

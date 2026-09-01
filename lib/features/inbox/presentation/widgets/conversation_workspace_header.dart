@@ -38,7 +38,7 @@ class ConversationWorkspaceHeader extends StatelessWidget {
     final colors = context.colors;
 
     return Container(
-      height: 64,
+      height: 58,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: colors.surface,
@@ -89,12 +89,18 @@ class ConversationWorkspaceHeader extends StatelessWidget {
           IconButton(
             tooltip: 'Search this conversation',
             isSelected: searching,
-            icon: const Icon(Icons.search, size: 20),
+            icon: const Icon(Icons.search, size: 18),
             onPressed: onToggleSearch,
           ),
+          if (!compact)
+            const IconButton(
+              tooltip: 'More (coming in a later stage)',
+              icon: Icon(Icons.more_vert, size: 18),
+              onPressed: null,
+            ),
           IconButton(
             tooltip: 'Close',
-            icon: const Icon(Icons.close, size: 20),
+            icon: const Icon(Icons.close, size: 18),
             onPressed: onClose,
           ),
         ],

@@ -75,6 +75,7 @@ class AppTheme {
         foregroundColor: colors.textPrimary,
         titleTextStyle: AppTypography.headingSmall.copyWith(
           color: colors.textPrimary,
+          fontSize: 16,
         ),
         elevation: 0,
         scrolledUnderElevation: 0,

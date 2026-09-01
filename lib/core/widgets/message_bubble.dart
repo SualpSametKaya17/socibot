@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_semantic_colors.dart';
 import '../../app/theme/app_spacing.dart';
 
@@ -35,11 +34,12 @@ class MessageBubble extends StatelessWidget {
         ? colors.primarySoft
         : colors.surfaceSecondary;
     final textColor = colors.textPrimary;
+    const bubbleRadius = 8.0;
     final radius = BorderRadius.only(
-      topLeft: const Radius.circular(AppRadius.md),
-      topRight: const Radius.circular(AppRadius.md),
-      bottomLeft: Radius.circular(isOutgoing ? AppRadius.md : AppRadius.sm),
-      bottomRight: Radius.circular(isOutgoing ? AppRadius.sm : AppRadius.md),
+      topLeft: const Radius.circular(bubbleRadius),
+      topRight: const Radius.circular(bubbleRadius),
+      bottomLeft: Radius.circular(isOutgoing ? bubbleRadius : 3),
+      bottomRight: Radius.circular(isOutgoing ? 3 : bubbleRadius),
     );
 
     return Align(
@@ -54,15 +54,16 @@ class MessageBubble extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm + 2,
+                vertical: 9,
               ),
               decoration: BoxDecoration(
                 color: bubbleColor,
                 borderRadius: radius,
+                border: isOutgoing ? null : Border.all(color: colors.border),
               ),
               child: Text(
                 text,
-                style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+                style: theme.textTheme.bodySmall?.copyWith(color: textColor),
               ),
             ),
             const SizedBox(height: 2),
@@ -70,6 +71,7 @@ class MessageBubble extends StatelessWidget {
               DateFormat.Hm().format(time),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colors.textMuted,
+                fontSize: 10,
               ),
             ),
           ],
