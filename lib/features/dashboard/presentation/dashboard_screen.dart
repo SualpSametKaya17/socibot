@@ -46,10 +46,11 @@ class DashboardScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyMedium
                     ?.copyWith(color: context.colors.textSecondary),
               ),
-              loading: () => const SizedBox(
-                height: 16,
-                width: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              loading: () => Skeletonizer(
+                child: Text(
+                  'Loading organization name',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
               error: (error, stackTrace) => Text(
                 'Could not load organization',

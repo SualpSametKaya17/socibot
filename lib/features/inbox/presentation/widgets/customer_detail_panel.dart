@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
@@ -55,8 +56,7 @@ class _CustomerDetailPanelState extends ConsumerState<CustomerDetailPanel> {
           : ref
                 .watch(conversationsProvider)
                 .when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const _CustomerDetailSkeleton(),
                   error: (error, stackTrace) => EmptyState(
                     icon: Icons.error_outline,
                     title: 'Could not load customer',
@@ -80,6 +80,66 @@ class _CustomerDetailPanelState extends ConsumerState<CustomerDetailPanel> {
                     );
                   },
                 ),
+    );
+  }
+}
+
+/// Shimmer placeholder shaped like [_ProfileCard] + [_DetailCard], shown
+/// while [conversationsProvider] is still resolving (rare in practice —
+/// reaching this panel already required the list to load — but honest
+/// for the brief window it's actually possible).
+class _CustomerDetailSkeleton extends StatelessWidget {
+  const _CustomerDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Skeletonizer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                borderRadius: _cardRadius,
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                children: [
+                  const AppAvatar(name: 'Loading name', radius: 28),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text('Loading contact name', style: AppTypography.labelLarge),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                borderRadius: _cardRadius,
+                border: Border.all(color: colors.border),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DetailFieldRow(
+                    icon: Icons.phone_outlined,
+                    label: 'Loading phone number',
+                  ),
+                  SizedBox(height: AppSpacing.sm),
+                  DetailFieldRow(
+                    icon: Icons.email_outlined,
+                    label: 'Loading email address',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

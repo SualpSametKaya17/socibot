@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/message_bubble.dart';
 import '../../../../core/widgets/message_composer.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 import '../../../conversations/domain/message_providers.dart';
@@ -127,7 +129,7 @@ class _ConversationWorkspaceState extends ConsumerState<ConversationWorkspace> {
               ),
             Expanded(
               child: messagesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const _MessageThreadSkeleton(),
                 error: (error, stackTrace) => EmptyState(
                   icon: Icons.error_outline,
                   title: 'Could not load messages',
@@ -155,6 +157,40 @@ class _ConversationWorkspaceState extends ConsumerState<ConversationWorkspace> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Shimmer placeholder for the message thread — alternating dummy
+/// bubbles built from the real [MessageBubble] widget, so switching
+/// conversations doesn't just flash a spinner while messages load.
+class _MessageThreadSkeleton extends StatelessWidget {
+  const _MessageThreadSkeleton();
+
+  static const _lines = [
+    'Loading message text',
+    'Loading a slightly longer line of message text here',
+    'Loading',
+    'Loading another message preview line',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+
+    return Skeletonizer(
+      child: ListView.separated(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 6,
+        separatorBuilder: (context, index) => const SizedBox(height: 14),
+        itemBuilder: (context, index) => MessageBubble(
+          text: _lines[index % _lines.length],
+          time: now,
+          isOutgoing: index.isOdd,
+          maxWidth: 320,
+        ),
+      ),
     );
   }
 }

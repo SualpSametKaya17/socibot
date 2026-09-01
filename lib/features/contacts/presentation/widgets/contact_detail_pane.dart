@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
@@ -48,7 +49,7 @@ class ContactDetailPane extends ConsumerWidget {
 
     final contactsAsync = ref.watch(contactsProvider);
     return contactsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const _ContactDetailSkeleton(),
       error: (error, stackTrace) => EmptyState(
         icon: Icons.error_outline,
         title: 'Could not load contact',
@@ -66,6 +67,75 @@ class ContactDetailPane extends ConsumerWidget {
         }
         return _ContactDetail(contact: contact);
       },
+    );
+  }
+}
+
+/// Shimmer placeholder shaped like [_ContactDetail], shown while
+/// [contactsProvider] is still resolving.
+class _ContactDetailSkeleton extends StatelessWidget {
+  const _ContactDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Skeletonizer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const AppAvatar(name: 'Loading name', radius: 28),
+                  const Gap(AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Loading contact name',
+                          style: AppTypography.headingSmall,
+                        ),
+                        const Gap(6),
+                        Text(
+                          'Loading channel',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Gap(AppSpacing.xl),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  border: Border.all(color: colors.border),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DetailFieldRow(
+                      icon: Icons.email_outlined,
+                      label: 'Loading email address',
+                    ),
+                    Gap(AppSpacing.sm),
+                    DetailFieldRow(
+                      icon: Icons.phone_outlined,
+                      label: 'Loading phone number',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
