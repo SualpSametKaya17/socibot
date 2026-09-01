@@ -1,234 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
-import 'package:intl/intl.dart';
 
+import '../../../app/theme/app_breakpoints.dart';
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
-import '../../../core/errors/app_exception.dart';
-import '../../../core/widgets/app_avatar.dart';
-import '../../../core/widgets/app_badge.dart';
-import '../../../core/widgets/app_surface_card.dart';
-import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/fade_slide_in.dart';
-import '../../auth/domain/auth_providers.dart';
-import '../../organization/domain/organization_member.dart';
-import '../../organization/domain/organization_providers.dart';
+import '../domain/settings_section.dart';
+import 'pages/inbox_settings_page.dart';
+import 'pages/notification_settings_page.dart';
+import 'pages/security_settings_page.dart';
+import 'pages/team_settings_page.dart';
+import 'pages/workspace_settings_page.dart';
+import 'widgets/settings_navigation.dart';
 
-class SettingsScreen extends ConsumerWidget {
+/// The Settings experience: a secondary navigation panel (desktop), a
+/// compact top pill bar (tablet), or a plain navigable list with
+/// master-detail push (mobile) — all sharing the same five section
+/// pages. Stays on the single `/settings` GoRouter route; section
+/// selection is local UI state, not a nested route.
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final organizationAsync = ref.watch(currentOrganizationProvider);
-    final membersAsync = ref.watch(organizationMembersProvider);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Settings', style: AppTypography.headingMedium),
-            const Gap(AppSpacing.xl),
-            Text('Organization', style: AppTypography.headingSmall),
-            const Gap(AppSpacing.md),
-            organizationAsync.when(
-              data: (organization) => organization == null
-                  ? const AppSurfaceCard(
-                      child: EmptyState(
-                        icon: Icons.apartment_outlined,
-                        title: 'No organization yet',
-                      ),
-                    )
-                  : _OrganizationCard(
-                      name: organization.name,
-                      slug: organization.slug,
-                      createdAt: organization.createdAt,
-                    ),
-              loading: () => const AppSurfaceCard(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stackTrace) => EmptyState(
-                icon: Icons.error_outline,
-                title: 'Could not load organization',
-                message: '$error',
-              ),
-            ),
-            const Gap(AppSpacing.xxl),
-            Text('Team', style: AppTypography.headingSmall),
-            const Gap(AppSpacing.md),
-            membersAsync.when(
-              data: (members) => _TeamCard(members: members),
-              loading: () => const AppSurfaceCard(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stackTrace) => EmptyState(
-                icon: Icons.error_outline,
-                title: 'Could not load team members',
-                message: '$error',
-              ),
-            ),
-            const Gap(AppSpacing.xxl),
-            Text('Account', style: AppTypography.headingSmall),
-            const Gap(AppSpacing.md),
-            const _AccountCard(),
-          ],
-        ),
-      ),
-    );
-  }
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _OrganizationCard extends StatelessWidget {
-  const _OrganizationCard({
-    required this.name,
-    required this.slug,
-    required this.createdAt,
-  });
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  SettingsSection _selected = SettingsSection.workspace;
+  bool _mobileSectionOpen = false;
 
-  final String name;
-  final String slug;
-  final DateTime createdAt;
+  Widget _pageFor(SettingsSection section) {
+    return switch (section) {
+      SettingsSection.workspace => const WorkspaceSettingsPage(),
+      SettingsSection.team => const TeamSettingsPage(),
+      SettingsSection.notifications => const NotificationSettingsPage(),
+      SettingsSection.inbox => const InboxSettingsPage(),
+      SettingsSection.security => const SecuritySettingsPage(),
+    };
+  }
+
+  void _select(SettingsSection section) {
+    setState(() {
+      _selected = section;
+      _mobileSectionOpen = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final width = MediaQuery.sizeOf(context).width;
+
+    if (width < AppBreakpoints.mobile) {
+      if (!_mobileSectionOpen) {
+        return SettingsMobileList(onSelect: _select);
+      }
+      return Column(
         children: [
-          Text(name, style: AppTypography.labelLarge),
-          const Gap(AppSpacing.xs),
-          Text(
-            '$slug · created ${DateFormat.yMMMd().format(createdAt)}',
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: colors.textSecondary),
+          _MobileSectionHeader(
+            title: _selected.label,
+            onBack: () => setState(() => _mobileSectionOpen = false),
           ),
+          Expanded(child: _pageFor(_selected)),
         ],
-      ),
-    );
-  }
-}
-
-class _TeamCard extends StatelessWidget {
-  const _TeamCard({required this.members});
-
-  final List<OrganizationMember> members;
-
-  @override
-  Widget build(BuildContext context) {
-    if (members.isEmpty) {
-      return const AppSurfaceCard(
-        child: EmptyState(icon: Icons.group_outlined, title: 'No members yet'),
       );
     }
 
-    return AppSurfaceCard(
-      clip: true,
-      child: Column(
+    if (width < AppBreakpoints.tablet) {
+      return Column(
         children: [
-          for (var i = 0; i < members.length; i++) ...[
-            FadeSlideIn(
-              delay: Duration(milliseconds: 30 * i),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    AppAvatar(
-                      name: members[i].displayName,
-                      imageUrl: members[i].avatarUrl,
-                    ),
-                    const Gap(AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            members[i].displayName,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          if (members[i].email != null)
-                            Text(
-                              members[i].email!,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: context.colors.textSecondary,
-                                  ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    AppBadge(
-                      label: members[i].role.label,
-                      color: context.colors.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (i != members.length - 1)
-              Divider(height: 1, color: context.colors.border),
-          ],
+          SettingsTabletNavBar(selected: _selected, onSelect: _select),
+          Expanded(child: _pageFor(_selected)),
         ],
-      ),
+      );
+    }
+
+    return Row(
+      children: [
+        SettingsNavigationPanel(selected: _selected, onSelect: _select),
+        Expanded(child: _pageFor(_selected)),
+      ],
     );
   }
 }
 
-class _AccountCard extends ConsumerWidget {
-  const _AccountCard();
+class _MobileSectionHeader extends StatelessWidget {
+  const _MobileSectionHeader({required this.title, required this.onBack});
+
+  final String title;
+  final VoidCallback onBack;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colors = context.colors;
-    final email =
-        ref.watch(authRepositoryProvider).currentUser?.email ?? 'Unknown';
 
-    Future<void> signOut() async {
-      final messenger = ScaffoldMessenger.of(context);
-      try {
-        await ref.read(authRepositoryProvider).signOut();
-      } on AppException catch (e) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    }
-
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Row(
-        children: [
-          AppAvatar(name: email),
-          const Gap(AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Signed in as',
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: colors.textSecondary),
-                ),
-                Text(email, style: Theme.of(context).textTheme.bodyMedium),
-              ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.border)),
+      ),
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: 'Back to Settings',
+              icon: const Icon(Icons.arrow_back, size: 20),
+              onPressed: onBack,
             ),
-          ),
-          OutlinedButton.icon(
-            onPressed: signOut,
-            icon: const Icon(Icons.logout, size: 18),
-            label: const Text('Sign out'),
-          ),
-        ],
+            Text(
+              title,
+              style: AppTypography.headingSmall.copyWith(fontSize: 16),
+            ),
+            const SizedBox(width: AppSpacing.md),
+          ],
+        ),
       ),
     );
   }

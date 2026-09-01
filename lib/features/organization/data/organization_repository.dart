@@ -38,14 +38,47 @@ class MockOrganizationRepository implements OrganizationRepository {
 
   @override
   Future<List<OrganizationMember>> fetchMembers(String organizationId) async {
+    final now = DateTime.now();
     return [
       OrganizationMember(
         id: 'mock-member-1',
         organizationId: organizationId,
         userId: 'mock-user-1',
         role: OrganizationRole.owner,
-        displayName: 'You',
+        displayName: 'Sofia Reyes',
+        email: 'sofia@acme.com',
         joinedAt: DateTime(2026, 1, 1),
+        lastActiveAt: now,
+      ),
+      OrganizationMember(
+        id: 'mock-member-2',
+        organizationId: organizationId,
+        userId: 'mock-user-2',
+        role: OrganizationRole.admin,
+        displayName: 'Alex Kim',
+        email: 'alex@acme.com',
+        joinedAt: DateTime(2026, 1, 8),
+        lastActiveAt: now.subtract(const Duration(minutes: 12)),
+      ),
+      OrganizationMember(
+        id: 'mock-member-3',
+        organizationId: organizationId,
+        userId: 'mock-user-3',
+        role: OrganizationRole.member,
+        displayName: 'John Miller',
+        email: 'john@acme.com',
+        joinedAt: DateTime(2026, 1, 15),
+        lastActiveAt: now.subtract(const Duration(hours: 2)),
+      ),
+      OrganizationMember(
+        id: 'mock-member-4',
+        organizationId: organizationId,
+        userId: 'mock-user-4',
+        role: OrganizationRole.member,
+        displayName: 'Emma Moore',
+        email: 'emma@acme.com',
+        joinedAt: DateTime(2026, 2, 3),
+        status: OrganizationMemberStatus.invited,
       ),
     ];
   }

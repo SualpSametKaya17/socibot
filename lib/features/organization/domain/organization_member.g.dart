@@ -16,6 +16,15 @@ _OrganizationMember _$OrganizationMemberFromJson(Map<String, dynamic> json) =>
       email: json['email'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
+      status:
+          $enumDecodeNullable(
+            _$OrganizationMemberStatusEnumMap,
+            json['status'],
+          ) ??
+          OrganizationMemberStatus.active,
+      lastActiveAt: json['lastActiveAt'] == null
+          ? null
+          : DateTime.parse(json['lastActiveAt'] as String),
     );
 
 Map<String, dynamic> _$OrganizationMemberToJson(_OrganizationMember instance) =>
@@ -28,10 +37,17 @@ Map<String, dynamic> _$OrganizationMemberToJson(_OrganizationMember instance) =>
       'email': instance.email,
       'avatarUrl': instance.avatarUrl,
       'joinedAt': instance.joinedAt.toIso8601String(),
+      'status': _$OrganizationMemberStatusEnumMap[instance.status]!,
+      'lastActiveAt': instance.lastActiveAt?.toIso8601String(),
     };
 
 const _$OrganizationRoleEnumMap = {
   OrganizationRole.owner: 'owner',
   OrganizationRole.admin: 'admin',
   OrganizationRole.member: 'member',
+};
+
+const _$OrganizationMemberStatusEnumMap = {
+  OrganizationMemberStatus.active: 'active',
+  OrganizationMemberStatus.invited: 'invited',
 };

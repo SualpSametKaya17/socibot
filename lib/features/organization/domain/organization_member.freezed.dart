@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OrganizationMember {
 
- String get id; String get organizationId; String get userId; OrganizationRole get role; String get displayName; String? get email; String? get avatarUrl; DateTime get joinedAt;
+ String get id; String get organizationId; String get userId; OrganizationRole get role; String get displayName; String? get email; String? get avatarUrl; DateTime get joinedAt; OrganizationMemberStatus get status;/// Null for a member who hasn't signed in since being invited.
+ DateTime? get lastActiveAt;
 /// Create a copy of OrganizationMember
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $OrganizationMemberCopyWith<OrganizationMember> get copyWith => _$OrganizationMe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganizationMember&&(identical(other.id, id) || other.id == id)&&(identical(other.organizationId, organizationId) || other.organizationId == organizationId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrganizationMember&&(identical(other.id, id) || other.id == id)&&(identical(other.organizationId, organizationId) || other.organizationId == organizationId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastActiveAt, lastActiveAt) || other.lastActiveAt == lastActiveAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,organizationId,userId,role,displayName,email,avatarUrl,joinedAt);
+int get hashCode => Object.hash(runtimeType,id,organizationId,userId,role,displayName,email,avatarUrl,joinedAt,status,lastActiveAt);
 
 @override
 String toString() {
-  return 'OrganizationMember(id: $id, organizationId: $organizationId, userId: $userId, role: $role, displayName: $displayName, email: $email, avatarUrl: $avatarUrl, joinedAt: $joinedAt)';
+  return 'OrganizationMember(id: $id, organizationId: $organizationId, userId: $userId, role: $role, displayName: $displayName, email: $email, avatarUrl: $avatarUrl, joinedAt: $joinedAt, status: $status, lastActiveAt: $lastActiveAt)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $OrganizationMemberCopyWith<$Res>  {
   factory $OrganizationMemberCopyWith(OrganizationMember value, $Res Function(OrganizationMember) _then) = _$OrganizationMemberCopyWithImpl;
 @useResult
 $Res call({
- String id, String organizationId, String userId, OrganizationRole role, String displayName, String? email, String? avatarUrl, DateTime joinedAt
+ String id, String organizationId, String userId, OrganizationRole role, String displayName, String? email, String? avatarUrl, DateTime joinedAt, OrganizationMemberStatus status, DateTime? lastActiveAt
 });
 
 
@@ -65,7 +66,7 @@ class _$OrganizationMemberCopyWithImpl<$Res>
 
 /// Create a copy of OrganizationMember
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? organizationId = null,Object? userId = null,Object? role = null,Object? displayName = null,Object? email = freezed,Object? avatarUrl = freezed,Object? joinedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? organizationId = null,Object? userId = null,Object? role = null,Object? displayName = null,Object? email = freezed,Object? avatarUrl = freezed,Object? joinedAt = null,Object? status = null,Object? lastActiveAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,organizationId: null == organizationId ? _self.organizationId : organizationId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +76,9 @@ as OrganizationRole,displayName: null == displayName ? _self.displayName : displ
 as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,joinedAt: null == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as OrganizationMemberStatus,lastActiveAt: freezed == lastActiveAt ? _self.lastActiveAt : lastActiveAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -157,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt,  OrganizationMemberStatus status,  DateTime? lastActiveAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrganizationMember() when $default != null:
-return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt);case _:
+return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt,_that.status,_that.lastActiveAt);case _:
   return orElse();
 
 }
@@ -178,10 +181,10 @@ return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.disp
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt,  OrganizationMemberStatus status,  DateTime? lastActiveAt)  $default,) {final _that = this;
 switch (_that) {
 case _OrganizationMember():
-return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt);}
+return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt,_that.status,_that.lastActiveAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -195,10 +198,10 @@ return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.disp
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String organizationId,  String userId,  OrganizationRole role,  String displayName,  String? email,  String? avatarUrl,  DateTime joinedAt,  OrganizationMemberStatus status,  DateTime? lastActiveAt)?  $default,) {final _that = this;
 switch (_that) {
 case _OrganizationMember() when $default != null:
-return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt);case _:
+return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.displayName,_that.email,_that.avatarUrl,_that.joinedAt,_that.status,_that.lastActiveAt);case _:
   return null;
 
 }
@@ -210,7 +213,7 @@ return $default(_that.id,_that.organizationId,_that.userId,_that.role,_that.disp
 @JsonSerializable()
 
 class _OrganizationMember implements OrganizationMember {
-  const _OrganizationMember({required this.id, required this.organizationId, required this.userId, required this.role, required this.displayName, this.email, this.avatarUrl, required this.joinedAt});
+  const _OrganizationMember({required this.id, required this.organizationId, required this.userId, required this.role, required this.displayName, this.email, this.avatarUrl, required this.joinedAt, this.status = OrganizationMemberStatus.active, this.lastActiveAt});
   factory _OrganizationMember.fromJson(Map<String, dynamic> json) => _$OrganizationMemberFromJson(json);
 
 @override final  String id;
@@ -221,6 +224,9 @@ class _OrganizationMember implements OrganizationMember {
 @override final  String? email;
 @override final  String? avatarUrl;
 @override final  DateTime joinedAt;
+@override@JsonKey() final  OrganizationMemberStatus status;
+/// Null for a member who hasn't signed in since being invited.
+@override final  DateTime? lastActiveAt;
 
 /// Create a copy of OrganizationMember
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganizationMember&&(identical(other.id, id) || other.id == id)&&(identical(other.organizationId, organizationId) || other.organizationId == organizationId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrganizationMember&&(identical(other.id, id) || other.id == id)&&(identical(other.organizationId, organizationId) || other.organizationId == organizationId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.role, role) || other.role == role)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.lastActiveAt, lastActiveAt) || other.lastActiveAt == lastActiveAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,organizationId,userId,role,displayName,email,avatarUrl,joinedAt);
+int get hashCode => Object.hash(runtimeType,id,organizationId,userId,role,displayName,email,avatarUrl,joinedAt,status,lastActiveAt);
 
 @override
 String toString() {
-  return 'OrganizationMember(id: $id, organizationId: $organizationId, userId: $userId, role: $role, displayName: $displayName, email: $email, avatarUrl: $avatarUrl, joinedAt: $joinedAt)';
+  return 'OrganizationMember(id: $id, organizationId: $organizationId, userId: $userId, role: $role, displayName: $displayName, email: $email, avatarUrl: $avatarUrl, joinedAt: $joinedAt, status: $status, lastActiveAt: $lastActiveAt)';
 }
 
 
@@ -255,7 +261,7 @@ abstract mixin class _$OrganizationMemberCopyWith<$Res> implements $Organization
   factory _$OrganizationMemberCopyWith(_OrganizationMember value, $Res Function(_OrganizationMember) _then) = __$OrganizationMemberCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String organizationId, String userId, OrganizationRole role, String displayName, String? email, String? avatarUrl, DateTime joinedAt
+ String id, String organizationId, String userId, OrganizationRole role, String displayName, String? email, String? avatarUrl, DateTime joinedAt, OrganizationMemberStatus status, DateTime? lastActiveAt
 });
 
 
@@ -272,7 +278,7 @@ class __$OrganizationMemberCopyWithImpl<$Res>
 
 /// Create a copy of OrganizationMember
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? organizationId = null,Object? userId = null,Object? role = null,Object? displayName = null,Object? email = freezed,Object? avatarUrl = freezed,Object? joinedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? organizationId = null,Object? userId = null,Object? role = null,Object? displayName = null,Object? email = freezed,Object? avatarUrl = freezed,Object? joinedAt = null,Object? status = null,Object? lastActiveAt = freezed,}) {
   return _then(_OrganizationMember(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,organizationId: null == organizationId ? _self.organizationId : organizationId // ignore: cast_nullable_to_non_nullable
@@ -282,7 +288,9 @@ as OrganizationRole,displayName: null == displayName ? _self.displayName : displ
 as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,joinedAt: null == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as OrganizationMemberStatus,lastActiveAt: freezed == lastActiveAt ? _self.lastActiveAt : lastActiveAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
