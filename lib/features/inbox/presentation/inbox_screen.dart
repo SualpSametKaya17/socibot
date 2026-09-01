@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/app_breakpoints.dart';
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import 'widgets/channel_rail.dart';
@@ -12,10 +13,14 @@ import 'widgets/customer_detail_panel.dart';
 /// outside this feature's scope):
 ///
 /// wide desktop (>=1350px total app width): [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel]
-/// medium desktop: [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel] (channel rail collapses)
-/// tablet: [ConversationListPanel] | [ConversationWorkspace] (customer detail hidden too)
+/// small/medium desktop (900-1349px): [ConversationListPanel] | [ConversationWorkspace] (channel rail collapses, customer detail moves into a drawer — see [_wideDesktopWidth]/[AppBreakpoints.smallDesktop])
+/// tablet: [ConversationListPanel] | [ConversationWorkspace] (customer detail in a drawer)
 /// mobile: [ConversationListPanel] only; selecting a conversation pushes
-/// [ConversationWorkspace] full-screen.
+/// [ConversationWorkspace] full-screen (customer detail in a drawer there too).
+///
+/// At every width, customer details stay reachable — either permanently
+/// on screen or one tap away via [ConversationWorkspaceHeader]'s info
+/// button — never silently dropped just because the panel didn't fit.
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
 
@@ -28,41 +33,95 @@ class InboxScreen extends StatelessWidget {
         onSelect: (_) => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (context) => Scaffold(
+              endDrawer: const _CustomerDetailDrawer(),
               body: SafeArea(
-                child: ConversationWorkspace(
-                  compact: true,
-                  onClose: () => Navigator.of(context).pop(),
+                child: Builder(
+                  builder: (context) => ConversationWorkspace(
+                    compact: true,
+                    onClose: () => Navigator.of(context).pop(),
+                    onOpenDetails: () => Scaffold.of(context).openEndDrawer(),
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-      tablet: (context) => const Row(
-        children: [
-          SizedBox(width: 320, child: ConversationListPanel()),
-          _VerticalBorder(),
-          Expanded(child: ConversationWorkspace()),
-        ],
+      tablet: (context) => Scaffold(
+        endDrawer: const _CustomerDetailDrawer(),
+        body: Builder(
+          builder: (context) => Row(
+            children: [
+              const SizedBox(width: 280, child: ConversationListPanel()),
+              const _VerticalBorder(),
+              Expanded(
+                child: ConversationWorkspace(
+                  onOpenDetails: () => Scaffold.of(context).openEndDrawer(),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       desktop: (context) {
         // Total application width, not this screen's local share of it —
         // consistent with how [ResponsiveLayout] itself decides.
-        final isWide = MediaQuery.sizeOf(context).width >= _wideDesktopWidth;
-        return Row(
-          children: [
-            if (isWide) ...[
-              const SizedBox(width: 52, child: ChannelRail()),
-              const _VerticalBorder(),
-            ],
-            const SizedBox(width: 310, child: ConversationListPanel()),
+        final totalWidth = MediaQuery.sizeOf(context).width;
+        final isWide = totalWidth >= _wideDesktopWidth;
+        final showCustomerPanel = totalWidth >= AppBreakpoints.smallDesktop;
+
+        final listAndWorkspace = <Widget>[
+          if (isWide) ...[
+            const SizedBox(width: 52, child: ChannelRail()),
             const _VerticalBorder(),
-            const Expanded(child: ConversationWorkspace()),
-            const _VerticalBorder(),
-            const SizedBox(width: 252, child: CustomerDetailPanel()),
           ],
+          const SizedBox(width: 310, child: ConversationListPanel()),
+          const _VerticalBorder(),
+        ];
+
+        if (showCustomerPanel) {
+          return Row(
+            children: [
+              ...listAndWorkspace,
+              const Expanded(child: ConversationWorkspace()),
+              const _VerticalBorder(),
+              const SizedBox(width: 252, child: CustomerDetailPanel()),
+            ],
+          );
+        }
+
+        // Small desktop (900-1199px total): a permanent 252px customer
+        // panel plus the 310px list would leave the conversation column
+        // too narrow to be usable, so customer details move into a
+        // drawer instead of disappearing outright.
+        return Scaffold(
+          endDrawer: const _CustomerDetailDrawer(),
+          body: Builder(
+            builder: (context) => Row(
+              children: [
+                ...listAndWorkspace,
+                Expanded(
+                  child: ConversationWorkspace(
+                    onOpenDetails: () => Scaffold.of(context).openEndDrawer(),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
+    );
+  }
+}
+
+class _CustomerDetailDrawer extends StatelessWidget {
+  const _CustomerDetailDrawer();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Drawer(
+      width: 320,
+      child: SafeArea(child: CustomerDetailPanel()),
     );
   }
 }

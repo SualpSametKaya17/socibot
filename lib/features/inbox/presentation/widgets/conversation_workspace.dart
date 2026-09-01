@@ -12,7 +12,12 @@ import 'message_list.dart';
 /// Region 4: the selected conversation's header, message thread, and
 /// composer. Shows an empty state when nothing is selected yet.
 class ConversationWorkspace extends ConsumerStatefulWidget {
-  const ConversationWorkspace({super.key, this.onClose, this.compact = false});
+  const ConversationWorkspace({
+    super.key,
+    this.onClose,
+    this.compact = false,
+    this.onOpenDetails,
+  });
 
   /// Overrides the header's close action. Defaults to clearing the
   /// selection in place (desktop split view); mobile's pushed full-screen
@@ -23,6 +28,10 @@ class ConversationWorkspace extends ConsumerStatefulWidget {
   /// mobile full-screen push, where there isn't room for every header
   /// action.
   final bool compact;
+
+  /// Passed through to [ConversationWorkspaceHeader] — set at any width
+  /// where the customer detail panel isn't permanently on screen.
+  final VoidCallback? onOpenDetails;
 
   @override
   ConsumerState<ConversationWorkspace> createState() =>
@@ -95,6 +104,7 @@ class _ConversationWorkspaceState extends ConsumerState<ConversationWorkspace> {
               compact: widget.compact,
               searching: _searching,
               onToggleSearch: () => setState(() => _searching = !_searching),
+              onOpenDetails: widget.onOpenDetails,
               onClose:
                   widget.onClose ??
                   () =>

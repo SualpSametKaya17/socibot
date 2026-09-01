@@ -77,7 +77,16 @@ class _MessageComposerState extends State<MessageComposer> {
         height: 280,
         child: EmojiPicker(
           onEmojiSelected: (category, emoji) {
-            _controller.text += emoji.emoji;
+            // Appending via `.text +=` resets the selection to the start
+            // of the field (a well-known TextEditingController gotcha),
+            // so the next keystroke would land before the emoji instead
+            // of after it — set the selection explicitly to keep typing
+            // where the user expects.
+            final text = _controller.text + emoji.emoji;
+            _controller.value = _controller.value.copyWith(
+              text: text,
+              selection: TextSelection.collapsed(offset: text.length),
+            );
           },
         ),
       ),

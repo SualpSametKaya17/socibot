@@ -155,6 +155,26 @@ void main() {
       },
     );
 
+    testWidgets('small desktop widths move the customer panel into a drawer', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1000, 800));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+
+      // No permanently-visible customer detail panel at this width —
+      // the contact name appears only in the list tile and header.
+      expect(find.text('Elena Martinez'), findsNWidgets(2));
+      expect(find.text('Contact Information'), findsNothing);
+
+      await tester.tap(find.byTooltip('View customer details'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Contact Information'), findsOneWidget);
+    });
+
     testWidgets('channel rail narrows the list by channel', (tester) async {
       await pumpInbox(tester, size: const Size(1400, 900));
       await tester.pumpAndSettle();

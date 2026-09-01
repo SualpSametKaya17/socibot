@@ -21,6 +21,7 @@ class ConversationWorkspaceHeader extends StatelessWidget {
     required this.searching,
     required this.onToggleSearch,
     this.compact = false,
+    this.onOpenDetails,
   });
 
   final Conversation conversation;
@@ -32,10 +33,22 @@ class ConversationWorkspaceHeader extends StatelessWidget {
   /// for them on a narrow (mobile, full-screen-pushed) header.
   final bool compact;
 
+  /// Set only when the customer detail panel isn't permanently visible
+  /// at this width (mobile, tablet, small desktop) — renders an info
+  /// button that opens it as a drawer instead, so customer details stay
+  /// reachable at every breakpoint rather than silently disappearing.
+  final VoidCallback? onOpenDetails;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.colors;
+    // The assigned-to chip and Resolve button are the widest optional
+    // elements. [onOpenDetails] is only set where the customer panel
+    // isn't permanently on screen (mobile/tablet/small desktop) — the
+    // same narrower layouts that don't have room for them either, so
+    // reuse that signal instead of guessing a separate width threshold.
+    final roomy = !compact && onOpenDetails == null;
 
     return Container(
       height: 58,
@@ -80,19 +93,25 @@ class ConversationWorkspaceHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (!compact) ...[
+          if (roomy) ...[
             _AssignedToChip(agentName: conversation.assignedAgentName),
             const SizedBox(width: AppSpacing.sm),
             const _ResolveButton(),
             const SizedBox(width: AppSpacing.xs),
           ],
+          if (onOpenDetails != null)
+            IconButton(
+              tooltip: 'View customer details',
+              icon: const Icon(Icons.info_outline, size: 18),
+              onPressed: onOpenDetails,
+            ),
           IconButton(
             tooltip: 'Search this conversation',
             isSelected: searching,
             icon: const Icon(Icons.search, size: 18),
             onPressed: onToggleSearch,
           ),
-          if (!compact)
+          if (roomy)
             const IconButton(
               tooltip: 'More (coming in a later stage)',
               icon: Icon(Icons.more_vert, size: 18),

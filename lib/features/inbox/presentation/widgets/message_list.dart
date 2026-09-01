@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/theme/app_breakpoints.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
@@ -83,7 +84,17 @@ class _MessageListState extends State<MessageList> {
         final contentWidth = constraints.maxWidth > _maxContentWidth
             ? _maxContentWidth
             : constraints.maxWidth;
-        final bubbleMaxWidth = contentWidth * 0.72;
+        // Widest on mobile (less room to spare on a narrow screen), tighter
+        // on desktop (a full-width bubble reads as excessive once there's
+        // hundreds of pixels of workspace to work with) — not one ratio
+        // for every screen size.
+        final totalWidth = MediaQuery.sizeOf(context).width;
+        final bubbleRatio = totalWidth < AppBreakpoints.mobile
+            ? 0.82
+            : totalWidth < AppBreakpoints.tablet
+            ? 0.75
+            : 0.65;
+        final bubbleMaxWidth = contentWidth * bubbleRatio;
 
         return Center(
           child: ConstrainedBox(

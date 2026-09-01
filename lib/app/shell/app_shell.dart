@@ -40,9 +40,57 @@ class AppShell extends StatelessWidget {
         navigationShell: navigationShell,
         onDestinationSelected: _onDestinationSelected,
       ),
+      // The 172px labeled sidebar eats too much of a 600-899px tablet
+      // width to leave screens like Inbox usable — a narrow icon-only
+      // rail (same content, `extended: false`) keeps navigation reachable
+      // without the width cost.
+      tablet: (context) => _TabletShell(
+        navigationShell: navigationShell,
+        onDestinationSelected: _onDestinationSelected,
+      ),
       desktop: (context) => _DesktopShell(
         navigationShell: navigationShell,
         onDestinationSelected: _onDestinationSelected,
+      ),
+    );
+  }
+}
+
+class _TabletShell extends ConsumerWidget {
+  const _TabletShell({
+    required this.navigationShell,
+    required this.onDestinationSelected,
+  });
+
+  final StatefulNavigationShell navigationShell;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final destination = shellDestinations[navigationShell.currentIndex];
+    final unreadCount = ref.watch(totalUnreadCountProvider);
+
+    return Scaffold(
+      body: Row(
+        children: [
+          _SidebarFrame(
+            width: AppSizes.navRailWidth,
+            child: _ShellSidebarContent(
+              extended: false,
+              selectedIndex: navigationShell.currentIndex,
+              unreadCount: unreadCount,
+              onDestinationSelected: onDestinationSelected,
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                AppTopBar(title: Text(destination.label)),
+                Expanded(child: navigationShell),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
