@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/core/widgets/conversation_tile.dart';
 import 'package:socibot/features/inbox/presentation/inbox_screen.dart';
 import 'package:socibot/features/inbox/presentation/widgets/channel_rail.dart';
 
 void main() {
+  setUpAll(() {
+    // Use the locally-bundled Inter weights instead of hitting the
+    // network — same as production (see main.dart).
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
   // Sets the *real* test viewport (not just the MediaQuery data a widget
   // reads) so ResponsiveLayout's branch and the actual render constraints
   // agree — a bare `MediaQuery(data: ...)` override only fakes the

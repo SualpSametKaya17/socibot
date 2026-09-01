@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/core/widgets/app_avatar.dart';
 import 'package:socibot/core/widgets/responsive_layout.dart';
 
 void main() {
+  setUpAll(() {
+    // Use the locally-bundled Inter weights instead of hitting the
+    // network — same as production (see main.dart).
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
   group('AppAvatar', () {
     testWidgets('shows initials from a two-word name', (tester) async {
       await tester.pumpWidget(
