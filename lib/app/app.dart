@@ -16,7 +16,10 @@ class SocibotApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      // The product's visual identity is the light SaaS look; don't let a
+      // viewer's OS dark-mode setting silently switch it. Dark theme stays
+      // implemented for later, just not auto-triggered yet.
+      themeMode: ThemeMode.light,
       routerConfig: router,
     );
   }

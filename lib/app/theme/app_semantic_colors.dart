@@ -48,7 +48,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     background: Color(0xFFFFFFFF),
     surface: Color(0xFFFFFFFF),
     surfaceSecondary: Color(0xFFF6F7F9),
-    sidebar: Color(0xFFF7F7FB),
+    sidebar: Color(0xFFF1F1FA),
     border: Color(0xFFE5E7EB),
     borderStrong: Color(0xFFD1D5DB),
     textPrimary: Color(0xFF111827),
