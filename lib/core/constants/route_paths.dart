@@ -8,5 +8,11 @@ class RoutePaths {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
-  static const String home = '/home';
+
+  // Application shell destinations (AŞAMA 3+).
+  static const String dashboard = '/dashboard';
+  static const String inbox = '/inbox';
+  static const String contacts = '/contacts';
+  static const String channels = '/channels';
+  static const String settings = '/settings';
 }
