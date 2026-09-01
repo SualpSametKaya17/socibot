@@ -54,6 +54,21 @@ class AppTheme {
       scaffoldBackgroundColor: colors.background,
       textTheme: AppTypography.textTheme(colors.textPrimary),
       extensions: [colors],
+      // Stock Material's touch-sized defaults (buttons, checkboxes, popup
+      // menu rows) read as "a Flutter app" on a dense desktop SaaS
+      // screen; tightening density and dropping the growing-circle
+      // ripple in favor of a flat hover/press overlay is most of the fix.
+      visualDensity: VisualDensity.compact,
+      splashFactory: NoSplash.splashFactory,
+      scrollbarTheme: ScrollbarThemeData(
+        thickness: const WidgetStatePropertyAll(6),
+        radius: const Radius.circular(AppRadius.full),
+        thumbColor: WidgetStatePropertyAll(
+          colors.textMuted.withValues(alpha: 0.35),
+        ),
+        trackColor: const WidgetStatePropertyAll(Colors.transparent),
+        trackBorderColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
 
       appBarTheme: AppBarTheme(
         backgroundColor: colors.surface,
@@ -68,7 +83,9 @@ class AppTheme {
 
       cardTheme: CardThemeData(
         color: colors.surface,
-        elevation: 0,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.05),
+        surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.lgAll,
@@ -173,11 +190,18 @@ class AppTheme {
         ),
       ),
 
-      // Icon button.
+      // Icon button. Stock IconButton reserves a 48x48 touch target —
+      // fine on mobile, but it visibly bloats icon rows on a dense
+      // desktop header/composer/toolbar, so tighten it to match the
+      // reference's compact icon spacing.
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
           foregroundColor: WidgetStatePropertyAll(colors.textSecondary),
           overlayColor: WidgetStatePropertyAll(colors.surfaceSecondary),
+          padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
+          minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
           ),
@@ -223,7 +247,8 @@ class AppTheme {
       popupMenuTheme: PopupMenuThemeData(
         color: colors.surface,
         surfaceTintColor: Colors.transparent,
-        elevation: 3,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.10),
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.mdAll,
           side: border,

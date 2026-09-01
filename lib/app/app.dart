@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'router/app_router.dart';
+import 'theme/app_scroll_behavior.dart';
 import 'theme/app_theme.dart';
 
 class SocibotApp extends ConsumerWidget {
@@ -20,6 +21,7 @@ class SocibotApp extends ConsumerWidget {
       // viewer's OS dark-mode setting silently switch it. Dark theme stays
       // implemented for later, just not auto-triggered yet.
       themeMode: ThemeMode.light,
+      scrollBehavior: AppScrollBehavior(),
       routerConfig: router,
     );
   }
