@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -7,20 +9,50 @@ import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/channel_type.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
+import '../../../../core/widgets/load_more_row.dart';
 import '../../domain/contact_providers.dart';
 import 'contact_tile.dart';
 
 /// The searchable contact list — left pane on desktop, whole screen on
 /// mobile (same paradigm as [ConversationListPanel]).
-class ContactListPanel extends ConsumerWidget {
+class ContactListPanel extends ConsumerStatefulWidget {
   const ContactListPanel({super.key, this.onSelect});
 
   final ValueChanged<String>? onSelect;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContactListPanel> createState() => _ContactListPanelState();
+}
+
+class _ContactListPanelState extends ConsumerState<ContactListPanel> {
+  // Deliberately small: the mock dataset only has 10 contacts, and a page
+  // size bigger than that would make "Load more" never actually appear.
+  static const _pageSize = 6;
+
+  int _visibleCount = _pageSize;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref.read(contactSearchQueryProvider.notifier).state = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final contactsAsync = ref.watch(filteredContactsProvider);
     final selectedId = ref.watch(selectedContactIdProvider);
+
+    ref.listen(contactSearchQueryProvider, (previous, next) {
+      if (previous != next) setState(() => _visibleCount = _pageSize);
+    });
 
     return Column(
       children: [
@@ -37,8 +69,8 @@ class ContactListPanel extends ConsumerWidget {
                   prefixIcon: Icon(Icons.search, size: 20),
                   isDense: true,
                 ),
-                onChanged: (value) =>
-                    ref.read(contactSearchQueryProvider.notifier).state = value,
+                // Debounced so re-filtering doesn't run on every keystroke.
+                onChanged: _onSearchChanged,
               ),
             ],
           ),
@@ -54,11 +86,20 @@ class ContactListPanel extends ConsumerWidget {
                   message: 'Try a different search term.',
                 );
               }
+              final visible = contacts.take(_visibleCount).toList();
+              final hasMore = contacts.length > visible.length;
+
               return ListView.separated(
-                itemCount: contacts.length,
+                itemCount: visible.length + (hasMore ? 1 : 0),
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final contact = contacts[index];
+                  if (index == visible.length) {
+                    return LoadMoreRow(
+                      remaining: contacts.length - visible.length,
+                      onTap: () => setState(() => _visibleCount += _pageSize),
+                    );
+                  }
+                  final contact = visible[index];
                   return FadeSlideIn(
                     delay: Duration(milliseconds: 20 * index.clamp(0, 10)),
                     child: ContactTile(
@@ -71,7 +112,7 @@ class ContactListPanel extends ConsumerWidget {
                       onTap: () {
                         ref.read(selectedContactIdProvider.notifier).state =
                             contact.id;
-                        onSelect?.call(contact.id);
+                        widget.onSelect?.call(contact.id);
                       },
                     ),
                   );

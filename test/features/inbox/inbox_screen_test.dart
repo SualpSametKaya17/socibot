@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:socibot/app/theme/app_theme.dart';
+import 'package:socibot/core/widgets/conversation_tile.dart';
 import 'package:socibot/features/inbox/presentation/inbox_screen.dart';
 import 'package:socibot/features/inbox/presentation/widgets/channel_rail.dart';
 
@@ -46,7 +47,9 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'Elena');
-      await tester.pumpAndSettle();
+      // Search input is debounced (300ms) — a bigger pump step than the
+      // default 100ms reliably clears it in one pass.
+      await tester.pumpAndSettle(const Duration(milliseconds: 350));
 
       expect(find.text('Elena Martinez'), findsOneWidget);
       expect(find.text('Marcus Chen'), findsNothing);
@@ -60,7 +63,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'nobody matches this');
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(const Duration(milliseconds: 350));
 
       expect(find.text('No conversations found'), findsOneWidget);
     });
@@ -190,6 +193,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      // A newly-laid-out list row can start its own FadeSlideIn entrance
+      // timer on pumpAndSettle's very last frame, after which nothing
+      // else is scheduled — pumpAndSettle stops without that short timer
+      // ever getting to fire. One more pump past its longest possible
+      // delay (200ms) flushes it.
+      await tester.pump(const Duration(milliseconds: 250));
 
       // Elena Martinez is WhatsApp; Marcus Chen is Instagram.
       expect(find.text('Elena Martinez'), findsOneWidget);
@@ -203,8 +212,30 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 250));
 
       expect(find.text('Marcus Chen'), findsOneWidget);
+    });
+
+    testWidgets('Load more reveals the rest of the conversation list', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      // The mock dataset has 10 conversations; the first page shows 6.
+      expect(find.byType(ConversationTile), findsNWidgets(6));
+      expect(find.text('Load more (4)'), findsOneWidget);
+
+      await tester.tap(find.text('Load more (4)'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      // The list is virtualized (not every one of the 10 rows is built
+      // while off-screen), so assert growth + the button's gone rather
+      // than an exact on-screen widget count.
+      expect(find.byType(ConversationTile), findsAtLeastNWidgets(7));
+      expect(find.text('Load more (4)'), findsNothing);
     });
 
     testWidgets('composer send button enables once text is entered', (

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -12,6 +14,7 @@ import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/conversation_tile.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
+import '../../../../core/widgets/load_more_row.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 import '../../../conversations/domain/conversation_status.dart';
@@ -31,7 +34,27 @@ class ConversationListPanel extends ConsumerStatefulWidget {
 }
 
 class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
+  // Deliberately small: the mock dataset only has 10 conversations, and a
+  // page size bigger than that would make "Load more" never actually
+  // appear. A real backend would page server-side at a much larger size.
+  static const _pageSize = 6;
+
   bool _searching = false;
+  int _visibleCount = _pageSize;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref.read(inboxSearchQueryProvider.notifier).state = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +64,22 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
     final channelLabel = selectedChannel?.label ?? 'All Channel';
     final quickCounts =
         ref.watch(inboxQuickFilterCountsProvider).valueOrNull ?? const {};
+
+    // A new search/filter should start back at the top of the list
+    // rather than keeping whatever page depth the previous results had
+    // scrolled to.
+    ref.listen(inboxSearchQueryProvider, (previous, next) {
+      if (previous != next) setState(() => _visibleCount = _pageSize);
+    });
+    ref.listen(inboxQuickFilterProvider, (previous, next) {
+      if (previous != next) setState(() => _visibleCount = _pageSize);
+    });
+    ref.listen(inboxStatusFilterProvider, (previous, next) {
+      if (previous != next) setState(() => _visibleCount = _pageSize);
+    });
+    ref.listen(inboxChannelFilterProvider, (previous, next) {
+      if (previous != next) setState(() => _visibleCount = _pageSize);
+    });
 
     return Column(
       children: [
@@ -83,8 +122,11 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                 prefixIcon: Icon(Icons.search, size: 18),
                 isDense: true,
               ),
-              onChanged: (value) =>
-                  ref.read(inboxSearchQueryProvider.notifier).state = value,
+              // Debounced — typing itself is never delayed (this is the
+              // field's own local text), only when the list actually
+              // re-filters, so a fast typist doesn't re-run the filter on
+              // every keystroke.
+              onChanged: _onSearchChanged,
             ),
           ),
         const _StatusTabsRow(key: Key('inbox-status-tabs')),
@@ -101,11 +143,20 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                   message: 'Try a different search term or filter.',
                 );
               }
+              final visible = conversations.take(_visibleCount).toList();
+              final hasMore = conversations.length > visible.length;
+
               return ListView.separated(
-                itemCount: conversations.length,
+                itemCount: visible.length + (hasMore ? 1 : 0),
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final conversation = conversations[index];
+                  if (index == visible.length) {
+                    return LoadMoreRow(
+                      remaining: conversations.length - visible.length,
+                      onTap: () => setState(() => _visibleCount += _pageSize),
+                    );
+                  }
+                  final conversation = visible[index];
                   return FadeSlideIn(
                     delay: Duration(milliseconds: 20 * index.clamp(0, 10)),
                     child: ConversationTile(
