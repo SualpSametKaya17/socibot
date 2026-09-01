@@ -82,180 +82,162 @@ class _WorkspaceSettingsPageState extends ConsumerState<WorkspaceSettingsPage> {
       ref.read(workspaceDraftProvider.notifier).state = update(draft);
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.xxl,
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 820),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return SettingsPageScaffold(
+      title: 'Workspace',
+      description: 'Manage your workspace information and preferences.',
+      children: [
+        SettingsSection(
+          title: 'Workspace details',
+          description:
+              'Update your workspace identity and regional preferences.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _WorkspaceLogo(name: organizationName),
+              const Gap(AppSpacing.lg),
+              AppTextField(
+                key: const ValueKey('workspace-name-field'),
+                label: 'Workspace Name',
+                initialValue: draft.name ?? organizationName,
+                onChanged: (value) =>
+                    updateDraft((d) => d.copyWith(name: value)),
+              ),
+              const Gap(AppSpacing.md),
+              AppTextField(
+                label: 'Workspace ID',
+                readOnly: true,
+                initialValue: organizationAsync.valueOrNull?.slug ?? '',
+                helperText:
+                    "This is your workspace's unique identifier "
+                    'and cannot be changed.',
+              ),
+              const Gap(AppSpacing.md),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: AppDropdownField<String>(
+                      label: 'Timezone',
+                      value: draft.timezone,
+                      items: [
+                        for (final tz in _timezones) AppDropdownItem(tz, tz),
+                      ],
+                      onChanged: (value) =>
+                          updateDraft((d) => d.copyWith(timezone: value)),
+                    ),
+                  ),
+                  const Gap(AppSpacing.md),
+                  Expanded(
+                    child: AppDropdownField<String>(
+                      label: 'Language',
+                      value: draft.language,
+                      items: [
+                        for (final lang in _languages)
+                          AppDropdownItem(lang, lang),
+                      ],
+                      onChanged: (value) =>
+                          updateDraft((d) => d.copyWith(language: value)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SettingsSection(
+          title: 'Appearance',
+          description: 'Customize how Socibot appears for you.',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ThemeSegmentedControl(
+                value: draft.theme,
+                onChanged: (value) =>
+                    updateDraft((d) => d.copyWith(theme: value)),
+              ),
+              const Gap(AppSpacing.xs + 2),
+              Text(
+                "Theme switching isn't wired up yet — this saves your "
+                'preference for when it is.',
+                style: AppTypography.caption.copyWith(
+                  color: colors.textMuted,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SettingsSection(
+          title: 'Regional preferences',
+          last: true,
+          child: Row(
+            children: [
+              Expanded(
+                child: AppDropdownField<String>(
+                  label: 'Date Format',
+                  value: draft.dateFormat,
+                  items: [
+                    for (final format in _dateFormats)
+                      AppDropdownItem(format, format),
+                  ],
+                  onChanged: (value) =>
+                      updateDraft((d) => d.copyWith(dateFormat: value)),
+                ),
+              ),
+              const Gap(AppSpacing.md),
+              Expanded(
+                child: AppDropdownField<String>(
+                  label: 'Time Format',
+                  value: draft.timeFormat,
+                  items: [
+                    for (final format in _timeFormats)
+                      AppDropdownItem(format, format),
+                  ],
+                  onChanged: (value) =>
+                      updateDraft((d) => d.copyWith(timeFormat: value)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Gap(AppSpacing.sm),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const SettingsPageHeader(
-              title: 'Workspace',
-              description: 'Manage your workspace information and preferences.',
-            ),
-            const Gap(AppSpacing.xl),
-            Divider(height: 1, color: colors.border),
-            const Gap(AppSpacing.xl),
-            SettingsSection(
-              title: 'Workspace details',
-              description:
-                  'Update your workspace identity and regional preferences.',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _WorkspaceLogo(name: organizationName),
-                  const Gap(AppSpacing.lg),
-                  AppTextField(
-                    key: const ValueKey('workspace-name-field'),
-                    label: 'Workspace Name',
-                    initialValue: draft.name ?? organizationName,
-                    onChanged: (value) =>
-                        updateDraft((d) => d.copyWith(name: value)),
-                  ),
-                  const Gap(AppSpacing.md),
-                  AppTextField(
-                    label: 'Workspace ID',
-                    readOnly: true,
-                    initialValue: organizationAsync.valueOrNull?.slug ?? '',
-                    helperText:
-                        "This is your workspace's unique identifier "
-                        'and cannot be changed.',
-                  ),
-                  const Gap(AppSpacing.md),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AppDropdownField<String>(
-                          label: 'Timezone',
-                          value: draft.timezone,
-                          items: [
-                            for (final tz in _timezones)
-                              AppDropdownItem(tz, tz),
-                          ],
-                          onChanged: (value) =>
-                              updateDraft((d) => d.copyWith(timezone: value)),
-                        ),
-                      ),
-                      const Gap(AppSpacing.md),
-                      Expanded(
-                        child: AppDropdownField<String>(
-                          label: 'Language',
-                          value: draft.language,
-                          items: [
-                            for (final lang in _languages)
-                              AppDropdownItem(lang, lang),
-                          ],
-                          onChanged: (value) =>
-                              updateDraft((d) => d.copyWith(language: value)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            if (_justSaved) ...[
+              Icon(Icons.check_circle, size: 16, color: colors.success),
+              const Gap(AppSpacing.xs),
+              Text(
+                'Changes saved',
+                style: AppTypography.labelMedium.copyWith(
+                  color: colors.success,
+                ),
               ),
-            ),
-            SettingsSection(
-              title: 'Appearance',
-              description: 'Customize how Socibot appears for you.',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ThemeSegmentedControl(
-                    value: draft.theme,
-                    onChanged: (value) =>
-                        updateDraft((d) => d.copyWith(theme: value)),
-                  ),
-                  const Gap(AppSpacing.xs + 2),
-                  Text(
-                    "Theme switching isn't wired up yet — this saves your "
-                    'preference for when it is.',
-                    style: AppTypography.caption.copyWith(
-                      color: colors.textMuted,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SettingsSection(
-              title: 'Regional preferences',
-              last: true,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppDropdownField<String>(
-                      label: 'Date Format',
-                      value: draft.dateFormat,
-                      items: [
-                        for (final format in _dateFormats)
-                          AppDropdownItem(format, format),
-                      ],
-                      onChanged: (value) =>
-                          updateDraft((d) => d.copyWith(dateFormat: value)),
-                    ),
-                  ),
-                  const Gap(AppSpacing.md),
-                  Expanded(
-                    child: AppDropdownField<String>(
-                      label: 'Time Format',
-                      value: draft.timeFormat,
-                      items: [
-                        for (final format in _timeFormats)
-                          AppDropdownItem(format, format),
-                      ],
-                      onChanged: (value) =>
-                          updateDraft((d) => d.copyWith(timeFormat: value)),
-                    ),
-                  ),
-                ],
-              ),
+              const Gap(AppSpacing.lg),
+            ],
+            TextButton(
+              onPressed: dirty && !_saving ? _cancel : null,
+              child: const Text('Cancel'),
             ),
             const Gap(AppSpacing.sm),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_justSaved) ...[
-                  Icon(Icons.check_circle, size: 16, color: colors.success),
-                  const Gap(AppSpacing.xs),
-                  Text(
-                    'Changes saved',
-                    style: AppTypography.labelMedium.copyWith(
-                      color: colors.success,
-                    ),
-                  ),
-                  const Gap(AppSpacing.lg),
-                ],
-                TextButton(
-                  onPressed: dirty && !_saving ? _cancel : null,
-                  child: const Text('Cancel'),
-                ),
-                const Gap(AppSpacing.sm),
-                ElevatedButton(
-                  onPressed: dirty && !_saving ? _save : null,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : const Text('Save Changes'),
-                ),
-              ],
+            ElevatedButton(
+              onPressed: dirty && !_saving ? _save : null,
+              child: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : const Text('Save Changes'),
             ),
-            const Gap(AppSpacing.xxl),
-            const _DangerZone(),
           ],
         ),
-      ),
+        const Gap(AppSpacing.xxl),
+        const _DangerZone(),
+      ],
     );
   }
 }

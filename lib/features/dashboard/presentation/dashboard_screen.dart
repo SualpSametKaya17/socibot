@@ -177,7 +177,9 @@ class _StatsGrid extends StatelessWidget {
 
   final List<Widget> cards;
 
-  static const double _cardHeight = 92;
+  // Icon row (32) + gap + label + gap + value text needs ~105px inside
+  // the card's own padding — 92 was too tight and overflowed.
+  static const double _cardHeight = 112;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +246,8 @@ class _StatCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.bodySmall.copyWith(
                     color: colors.textSecondary,
                   ),

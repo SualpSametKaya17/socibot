@@ -52,6 +52,60 @@ class SettingsPageHeader extends StatelessWidget {
   }
 }
 
+/// The one starting point every Settings page builds on: scroll
+/// container, page padding, the 820px readable-width cap, the page
+/// header, and the divider under it — all in one place so every section
+/// (Workspace, Team, Notifications, Inbox, Security) visibly starts from
+/// the exact same layout instead of each page hand-rolling its own
+/// preamble and quietly drifting (e.g. one page forgetting the divider).
+/// A page's `build()` should just be
+/// `SettingsPageScaffold(title: ..., description: ..., children: [...])`.
+class SettingsPageScaffold extends StatelessWidget {
+  const SettingsPageScaffold({
+    super.key,
+    required this.title,
+    required this.description,
+    this.headerTrailing,
+    required this.children,
+  });
+
+  final String title;
+  final String description;
+  final Widget? headerTrailing;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.xxl,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 820),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SettingsPageHeader(
+              title: title,
+              description: description,
+              trailing: headerTrailing,
+            ),
+            const Gap(AppSpacing.xl),
+            Divider(height: 1, color: colors.border),
+            const Gap(AppSpacing.xl),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// One labeled block of settings content — "SECTION TITLE / description
 /// / controls" — the app's preferred structure over stacking everything
 /// in cards. A [Divider] follows automatically unless [last] is set, so

@@ -54,161 +54,137 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
     final membersAsync = ref.watch(organizationMembersProvider);
     final isNarrow = MediaQuery.sizeOf(context).width < 720;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.xxl,
+    return SettingsPageScaffold(
+      title: 'Team',
+      description: 'Manage members who can access this workspace.',
+      headerTrailing: Tooltip(
+        message:
+            'Sending invites needs a backend endpoint — coming in a '
+            'later stage',
+        child: ElevatedButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.person_add_alt_1, size: 16),
+          label: const Text('Invite member'),
+        ),
       ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 820),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            SettingsPageHeader(
-              title: 'Team',
-              description: 'Manage members who can access this workspace.',
-              trailing: Tooltip(
-                message:
-                    'Sending invites needs a backend endpoint — coming in a '
-                    'later stage',
-                child: ElevatedButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.person_add_alt_1, size: 16),
-                  label: const Text('Invite member'),
+            Expanded(
+              flex: 2,
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Search members',
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  isDense: true,
                 ),
+                onChanged: (value) =>
+                    setState(() => _query = value.trim().toLowerCase()),
               ),
             ),
-            const Gap(AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: 'Search members',
-                      prefixIcon: Icon(Icons.search, size: 18),
-                      isDense: true,
-                    ),
-                    onChanged: (value) =>
-                        setState(() => _query = value.trim().toLowerCase()),
-                  ),
+            const Gap(AppSpacing.md),
+            Expanded(
+              child: DropdownButtonFormField<OrganizationRole?>(
+                initialValue: _roleFilter,
+                isExpanded: true,
+                icon: Icon(
+                  Icons.expand_more,
+                  size: 18,
+                  color: colors.textMuted,
                 ),
-                const Gap(AppSpacing.md),
-                Expanded(
-                  child: DropdownButtonFormField<OrganizationRole?>(
-                    initialValue: _roleFilter,
-                    isExpanded: true,
-                    icon: Icon(
-                      Icons.expand_more,
-                      size: 18,
-                      color: colors.textMuted,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      hintText: 'All roles',
-                    ),
-                    onChanged: (value) => setState(() => _roleFilter = value),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('All roles'),
-                      ),
-                      for (final role in OrganizationRole.values)
-                        DropdownMenuItem(value: role, child: Text(role.label)),
-                    ],
-                  ),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  hintText: 'All roles',
                 ),
-              ],
-            ),
-            const Gap(AppSpacing.lg),
-            membersAsync.when(
-              data: (members) {
-                final filtered = members.where((member) {
-                  if (_roleFilter != null && member.role != _roleFilter) {
-                    return false;
-                  }
-                  if (_query.isEmpty) return true;
-                  return member.displayName.toLowerCase().contains(_query) ||
-                      (member.email?.toLowerCase().contains(_query) ?? false);
-                }).toList();
-
-                if (members.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.group_outlined,
-                    title: 'No team members found',
-                    message:
-                        'Invite teammates to collaborate on customer '
-                        'conversations.',
-                  );
-                }
-                if (filtered.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.search_off,
-                    title: 'No members match your filters',
-                  );
-                }
-
-                return Container(
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    borderRadius: AppRadius.mdAll,
-                    border: Border.all(color: colors.border),
-                  ),
-                  child: Column(
-                    children: [
-                      if (!isNarrow) const TeamTableHeader(),
-                      for (var i = 0; i < filtered.length; i++) ...[
-                        FadeSlideIn(
-                          delay: Duration(milliseconds: 25 * i),
-                          child: isNarrow
-                              ? TeamMemberMobileRow(member: filtered[i])
-                              : TeamTableRow(
-                                  member: filtered[i],
-                                  onMoreTap: () {},
-                                ),
-                        ),
-                        if (i != filtered.length - 1)
-                          Divider(height: 1, color: colors.border),
-                      ],
-                    ],
-                  ),
-                );
-              },
-              loading: () => Skeletonizer(
-                child: Container(
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    borderRadius: AppRadius.mdAll,
-                    border: Border.all(color: colors.border),
-                  ),
-                  child: Column(
-                    children: [
-                      if (!isNarrow) const TeamTableHeader(),
-                      for (var i = 0; i < 4; i++) ...[
-                        isNarrow
-                            ? TeamMemberMobileRow(member: _dummyMember)
-                            : TeamTableRow(
-                                member: _dummyMember,
-                                onMoreTap: () {},
-                              ),
-                        if (i != 3) Divider(height: 1, color: colors.border),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              error: (error, stackTrace) => EmptyState(
-                icon: Icons.error_outline,
-                title: 'Could not load team members',
-                message: error is AppException ? error.message : '$error',
+                onChanged: (value) => setState(() => _roleFilter = value),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('All roles')),
+                  for (final role in OrganizationRole.values)
+                    DropdownMenuItem(value: role, child: Text(role.label)),
+                ],
               ),
             ),
           ],
         ),
-      ),
+        const Gap(AppSpacing.lg),
+        membersAsync.when(
+          data: (members) {
+            final filtered = members.where((member) {
+              if (_roleFilter != null && member.role != _roleFilter) {
+                return false;
+              }
+              if (_query.isEmpty) return true;
+              return member.displayName.toLowerCase().contains(_query) ||
+                  (member.email?.toLowerCase().contains(_query) ?? false);
+            }).toList();
+
+            if (members.isEmpty) {
+              return const EmptyState(
+                icon: Icons.group_outlined,
+                title: 'No team members found',
+                message:
+                    'Invite teammates to collaborate on customer '
+                    'conversations.',
+              );
+            }
+            if (filtered.isEmpty) {
+              return const EmptyState(
+                icon: Icons.search_off,
+                title: 'No members match your filters',
+              );
+            }
+
+            return Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.mdAll,
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                children: [
+                  if (!isNarrow) const TeamTableHeader(),
+                  for (var i = 0; i < filtered.length; i++) ...[
+                    FadeSlideIn(
+                      delay: Duration(milliseconds: 25 * i),
+                      child: isNarrow
+                          ? TeamMemberMobileRow(member: filtered[i])
+                          : TeamTableRow(member: filtered[i], onMoreTap: () {}),
+                    ),
+                    if (i != filtered.length - 1)
+                      Divider(height: 1, color: colors.border),
+                  ],
+                ],
+              ),
+            );
+          },
+          loading: () => Skeletonizer(
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.mdAll,
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                children: [
+                  if (!isNarrow) const TeamTableHeader(),
+                  for (var i = 0; i < 4; i++) ...[
+                    isNarrow
+                        ? TeamMemberMobileRow(member: _dummyMember)
+                        : TeamTableRow(member: _dummyMember, onMoreTap: () {}),
+                    if (i != 3) Divider(height: 1, color: colors.border),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          error: (error, stackTrace) => EmptyState(
+            icon: Icons.error_outline,
+            title: 'Could not load team members',
+            message: error is AppException ? error.message : '$error',
+          ),
+        ),
+      ],
     );
   }
 }

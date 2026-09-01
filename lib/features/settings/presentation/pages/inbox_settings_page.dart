@@ -28,131 +28,109 @@ class InboxSettingsPage extends ConsumerWidget {
       for (final member in members) member.displayName,
     ];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.xxl,
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 820),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SettingsPageHeader(
-              title: 'Inbox',
-              description: 'Configure default conversation behavior.',
-            ),
-            const Gap(AppSpacing.xl),
-            Divider(height: 1, color: colors.border),
-            const Gap(AppSpacing.xl),
-            SettingsSection(
-              title: 'Conversation assignment',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SettingsToggleRow(
-                    title: 'Auto assign new conversations',
-                    value: prefs.autoAssignNewConversations,
-                    onChanged: (value) => notifier.state = prefs.copyWith(
-                      autoAssignNewConversations: value,
-                    ),
-                  ),
-                  const Gap(AppSpacing.md),
-                  AppDropdownField<String>(
-                    label: 'Default assignee',
-                    value: assigneeOptions.contains(prefs.defaultAssignee)
-                        ? prefs.defaultAssignee
-                        : 'Unassigned',
-                    items: [
-                      for (final name in assigneeOptions)
-                        AppDropdownItem(name, name),
-                    ],
-                    onChanged: (value) =>
-                        notifier.state = prefs.copyWith(defaultAssignee: value),
-                  ),
-                ],
+    return SettingsPageScaffold(
+      title: 'Inbox',
+      description: 'Configure default conversation behavior.',
+      children: [
+        SettingsSection(
+          title: 'Conversation assignment',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SettingsToggleRow(
+                title: 'Auto assign new conversations',
+                value: prefs.autoAssignNewConversations,
+                onChanged: (value) => notifier.state = prefs.copyWith(
+                  autoAssignNewConversations: value,
+                ),
               ),
-            ),
-            SettingsSection(
-              title: 'Conversation behavior',
-              child: Column(
-                children: [
-                  SettingsToggleRow(
-                    title: 'Mark conversations as read when opened',
-                    value: prefs.markReadWhenOpened,
-                    onChanged: (value) => notifier.state = prefs.copyWith(
-                      markReadWhenOpened: value,
-                    ),
-                  ),
-                  SettingsToggleRow(
-                    title: 'Show message preview',
-                    value: prefs.showMessagePreview,
-                    onChanged: (value) => notifier.state = prefs.copyWith(
-                      showMessagePreview: value,
-                    ),
-                    last: true,
-                  ),
-                  const Gap(AppSpacing.lg),
-                  Text(
-                    'Enter key behavior',
-                    style: AppTypography.labelMedium.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                  const Gap(AppSpacing.sm),
-                  _EnterKeyOption(
-                    label: 'Send message',
-                    selected: prefs.enterKeyBehavior == EnterKeyBehavior.send,
-                    onTap: () => notifier.state = prefs.copyWith(
-                      enterKeyBehavior: EnterKeyBehavior.send,
-                    ),
-                  ),
-                  _EnterKeyOption(
-                    label: 'New line',
-                    selected:
-                        prefs.enterKeyBehavior == EnterKeyBehavior.newLine,
-                    onTap: () => notifier.state = prefs.copyWith(
-                      enterKeyBehavior: EnterKeyBehavior.newLine,
-                    ),
-                  ),
+              const Gap(AppSpacing.md),
+              AppDropdownField<String>(
+                label: 'Default assignee',
+                value: assigneeOptions.contains(prefs.defaultAssignee)
+                    ? prefs.defaultAssignee
+                    : 'Unassigned',
+                items: [
+                  for (final name in assigneeOptions)
+                    AppDropdownItem(name, name),
                 ],
+                onChanged: (value) =>
+                    notifier.state = prefs.copyWith(defaultAssignee: value),
               ),
-            ),
-            SettingsSection(
-              title: 'Resolution',
-              last: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppDropdownField<ConversationResolutionBehavior>(
-                    label: 'Default resolved behavior',
-                    value: prefs.resolutionBehavior,
-                    items: [
-                      for (final behavior
-                          in ConversationResolutionBehavior.values)
-                        AppDropdownItem(behavior, behavior.label),
-                    ],
-                    onChanged: (value) => notifier.state = prefs.copyWith(
-                      resolutionBehavior: value,
-                    ),
-                  ),
-                  const Gap(AppSpacing.md),
-                  SettingsToggleRow(
-                    title: 'Reopen when customer replies',
-                    value: prefs.reopenWhenCustomerReplies,
-                    onChanged: (value) => notifier.state = prefs.copyWith(
-                      reopenWhenCustomerReplies: value,
-                    ),
-                    last: true,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        SettingsSection(
+          title: 'Conversation behavior',
+          child: Column(
+            children: [
+              SettingsToggleRow(
+                title: 'Mark conversations as read when opened',
+                value: prefs.markReadWhenOpened,
+                onChanged: (value) =>
+                    notifier.state = prefs.copyWith(markReadWhenOpened: value),
+              ),
+              SettingsToggleRow(
+                title: 'Show message preview',
+                value: prefs.showMessagePreview,
+                onChanged: (value) =>
+                    notifier.state = prefs.copyWith(showMessagePreview: value),
+                last: true,
+              ),
+              const Gap(AppSpacing.lg),
+              Text(
+                'Enter key behavior',
+                style: AppTypography.labelMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const Gap(AppSpacing.sm),
+              _EnterKeyOption(
+                label: 'Send message',
+                selected: prefs.enterKeyBehavior == EnterKeyBehavior.send,
+                onTap: () => notifier.state = prefs.copyWith(
+                  enterKeyBehavior: EnterKeyBehavior.send,
+                ),
+              ),
+              _EnterKeyOption(
+                label: 'New line',
+                selected: prefs.enterKeyBehavior == EnterKeyBehavior.newLine,
+                onTap: () => notifier.state = prefs.copyWith(
+                  enterKeyBehavior: EnterKeyBehavior.newLine,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SettingsSection(
+          title: 'Resolution',
+          last: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppDropdownField<ConversationResolutionBehavior>(
+                label: 'Default resolved behavior',
+                value: prefs.resolutionBehavior,
+                items: [
+                  for (final behavior in ConversationResolutionBehavior.values)
+                    AppDropdownItem(behavior, behavior.label),
+                ],
+                onChanged: (value) =>
+                    notifier.state = prefs.copyWith(resolutionBehavior: value),
+              ),
+              const Gap(AppSpacing.md),
+              SettingsToggleRow(
+                title: 'Reopen when customer replies',
+                value: prefs.reopenWhenCustomerReplies,
+                onChanged: (value) => notifier.state = prefs.copyWith(
+                  reopenWhenCustomerReplies: value,
+                ),
+                last: true,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

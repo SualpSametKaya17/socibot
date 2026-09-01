@@ -89,11 +89,15 @@ class _MessageListState extends State<MessageList> {
         // hundreds of pixels of workspace to work with) — not one ratio
         // for every screen size.
         final totalWidth = MediaQuery.sizeOf(context).width;
+        // Desktop keeps the original, previously-approved 0.72 ratio — an
+        // earlier pass narrowed it to 0.65, which read as too cramped in
+        // practice. Mobile/tablet stay a bit wider still, since they have
+        // less room to spare.
         final bubbleRatio = totalWidth < AppBreakpoints.mobile
             ? 0.82
             : totalWidth < AppBreakpoints.tablet
-            ? 0.75
-            : 0.65;
+            ? 0.76
+            : 0.72;
         final bubbleMaxWidth = contentWidth * bubbleRatio;
 
         return Center(
