@@ -37,7 +37,7 @@ class DesignPreviewScreen extends StatelessWidget {
         body: Row(
           children: [
             SizedBox(
-              width: AppSizes.sidebarWidth,
+              width: AppSizes.navRailWidth,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: context.colors.sidebar,
@@ -50,23 +50,19 @@ class DesignPreviewScreen extends StatelessWidget {
                     for (final d in shellDestinations) d.toSidebarDestination(),
                   ],
                   selectedIndex: -1,
-                  extended: true,
+                  extended: false,
                   onDestinationSelected: (index) =>
                       context.go(shellDestinations[index].path),
                   leading: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
                       vertical: AppSpacing.lg,
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.forum_outlined,
-                          color: context.colors.primary,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text('Socibot', style: AppTypography.labelLarge),
-                      ],
+                    child: Tooltip(
+                      message: 'Socibot',
+                      child: Icon(
+                        Icons.forum_outlined,
+                        color: context.colors.primary,
+                      ),
                     ),
                   ),
                 ),

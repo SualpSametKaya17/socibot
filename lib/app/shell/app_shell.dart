@@ -17,11 +17,10 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'nav_destinations.dart';
 
-/// Application chrome: a full-width labeled nav sidebar + top bar on
-/// desktop/tablet, a drawer + top bar on mobile — the same extended
-/// sidebar content in both, just framed differently. Wraps GoRouter's
-/// [StatefulNavigationShell] so each destination keeps its own
-/// navigation state when switching tabs.
+/// Application chrome: a narrow (60px) icon-only nav rail + top bar on
+/// desktop/tablet, a full-width labeled drawer + top bar on mobile.
+/// Wraps GoRouter's [StatefulNavigationShell] so each destination keeps
+/// its own navigation state when switching tabs.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -67,8 +66,9 @@ class _DesktopShell extends ConsumerWidget {
       body: Row(
         children: [
           _SidebarFrame(
-            width: AppSizes.sidebarWidth,
+            width: AppSizes.navRailWidth,
             child: _ShellSidebarContent(
+              extended: false,
               selectedIndex: navigationShell.currentIndex,
               unreadCount: unreadCount,
               onDestinationSelected: onDestinationSelected,
@@ -108,6 +108,7 @@ class _MobileShell extends ConsumerWidget {
         backgroundColor: context.colors.sidebar,
         child: SafeArea(
           child: _ShellSidebarContent(
+            extended: true,
             selectedIndex: navigationShell.currentIndex,
             unreadCount: unreadCount,
             onDestinationSelected: (index) {
@@ -122,17 +123,20 @@ class _MobileShell extends ConsumerWidget {
   }
 }
 
-/// The extended (labeled) nav rail content shared by desktop's fixed
-/// sidebar and mobile's drawer: brand header, a "GENERAL" section label,
-/// destinations (Inbox carries a real unread badge), and the
-/// account/sign-out footer pinned to the bottom.
+/// Shared nav rail content for both desktop's narrow icon-only sidebar
+/// and mobile's full-width labeled drawer: brand header, destinations
+/// (Inbox carries a real unread badge, icon-only on desktop so only the
+/// icons — with tooltips — show there), and the account/sign-out footer
+/// pinned to the bottom.
 class _ShellSidebarContent extends StatelessWidget {
   const _ShellSidebarContent({
+    required this.extended,
     required this.selectedIndex,
     required this.unreadCount,
     required this.onDestinationSelected,
   });
 
+  final bool extended;
   final int selectedIndex;
   final int unreadCount;
   final ValueChanged<int> onDestinationSelected;
@@ -148,29 +152,33 @@ class _ShellSidebarContent extends StatelessWidget {
       ],
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,
-      extended: true,
-      leading: const Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.lg,
-          AppSpacing.md,
-          AppSpacing.sm,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _BrandMark(),
-            SizedBox(height: AppSpacing.lg),
-            _SectionCaption('GENERAL'),
-          ],
-        ),
+      extended: extended,
+      leading: Padding(
+        padding: extended
+            ? const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.sm,
+              )
+            : const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: extended
+            ? const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _BrandMark(extended: true),
+                  SizedBox(height: AppSpacing.lg),
+                  _SectionCaption('GENERAL'),
+                ],
+              )
+            : const _BrandMark(extended: false),
       ),
-      trailing: const Expanded(
+      trailing: Expanded(
         child: Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: _SidebarFooter(),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: _SidebarFooter(expanded: extended),
           ),
         ),
       ),
@@ -179,13 +187,18 @@ class _ShellSidebarContent extends StatelessWidget {
 }
 
 class _BrandMark extends StatelessWidget {
-  const _BrandMark();
+  const _BrandMark({required this.extended});
+
+  final bool extended;
 
   @override
   Widget build(BuildContext context) {
+    final icon = Icon(Icons.forum_outlined, color: context.colors.primary);
+    if (!extended) return Tooltip(message: 'Socibot', child: icon);
+
     return Row(
       children: [
-        Icon(Icons.forum_outlined, color: context.colors.primary),
+        icon,
         const SizedBox(width: AppSpacing.sm),
         Text('Socibot', style: AppTypography.labelLarge),
       ],
@@ -239,7 +252,9 @@ class _SidebarFrame extends StatelessWidget {
 /// opens the account menu (sign out) — the one place that action lives,
 /// so the top bar can stay minimal.
 class _SidebarFooter extends ConsumerWidget {
-  const _SidebarFooter();
+  const _SidebarFooter({required this.expanded});
+
+  final bool expanded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -282,27 +297,32 @@ class _SidebarFooter extends ConsumerWidget {
             ),
           ),
         ],
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: colors.border),
-          ),
-          child: Row(
-            children: [
-              AppAvatar(name: label),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  label,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
+        child: expanded
+            ? Container(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                decoration: BoxDecoration(
+                  borderRadius: AppRadius.mdAll,
+                  border: Border.all(color: colors.border),
                 ),
+                child: Row(
+                  children: [
+                    AppAvatar(name: label),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        label,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
+                  ],
+                ),
+              )
+            : Tooltip(
+                message: label,
+                child: AppAvatar(name: label),
               ),
-              Icon(Icons.unfold_more, size: 16, color: colors.textMuted),
-            ],
-          ),
-        ),
       ),
     );
   }
