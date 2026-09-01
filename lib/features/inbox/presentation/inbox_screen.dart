@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../core/widgets/responsive_layout.dart';
+import 'widgets/channel_rail.dart';
 import 'widgets/conversation_list_panel.dart';
 import 'widgets/conversation_workspace.dart';
-import 'widgets/inbox_filter_sidebar.dart';
+import 'widgets/customer_detail_panel.dart';
 
-/// The Inbox screen. Composes three of the layout's four regions (the
-/// fourth, the app's own navigation rail, is [AppShell] — outside this
+/// The Inbox screen. Composes four of the layout's five regions (the
+/// fifth, the app's own navigation rail, is [AppShell] — outside this
 /// feature's scope):
 ///
-/// desktop: [InboxFilterSidebar] | [ConversationListPanel] | [ConversationWorkspace]
-/// large tablet: [ConversationListPanel] | [ConversationWorkspace] (filter sidebar folds away)
+/// desktop: [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel]
+/// tablet: [ConversationListPanel] | [ConversationWorkspace] (rail and customer detail fold away)
 /// mobile: [ConversationListPanel] only; selecting a conversation pushes
 /// [ConversationWorkspace] full-screen.
 class InboxScreen extends StatelessWidget {
@@ -43,11 +44,13 @@ class InboxScreen extends StatelessWidget {
       ),
       desktop: (context) => const Row(
         children: [
-          SizedBox(width: 172, child: InboxFilterSidebar()),
+          SizedBox(width: 52, child: ChannelRail()),
           _VerticalBorder(),
-          SizedBox(width: 320, child: ConversationListPanel()),
+          SizedBox(width: 300, child: ConversationListPanel()),
           _VerticalBorder(),
           Expanded(child: ConversationWorkspace()),
+          _VerticalBorder(),
+          SizedBox(width: 232, child: CustomerDetailPanel()),
         ],
       ),
     );

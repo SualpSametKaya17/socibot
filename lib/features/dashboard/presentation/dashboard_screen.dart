@@ -233,6 +233,7 @@ class _RecentConversationsCard extends ConsumerWidget {
               ),
               lastMessagePreview: conversation.lastMessagePreview,
               lastMessageAt: conversation.lastMessageAt,
+              assignedAgentName: conversation.assignedAgentName,
               unreadCount: conversation.unreadCount,
               onTap: () {
                 ref.read(selectedConversationIdProvider.notifier).state =

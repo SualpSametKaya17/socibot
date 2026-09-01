@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Contact {
 
- String get id; String get displayName; String? get avatarUrl; String? get email; String? get phone; ChannelType get primaryChannel;// Mock-data convenience only — lets "View conversation" jump straight
+ String get id; String get displayName; String? get avatarUrl; String? get email; String? get phone; String? get company; String? get location; ChannelType get primaryChannel;// Mock-data convenience only — lets "View conversation" jump straight
 // to it. The real schema points the other way (conversations ->
 // contact_id); a real contact can have several conversations.
  String get conversationId; DateTime? get lastContactedAt;
@@ -28,16 +28,16 @@ $ContactCopyWith<Contact> get copyWith => _$ContactCopyWithImpl<Contact>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Contact&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.primaryChannel, primaryChannel) || other.primaryChannel == primaryChannel)&&(identical(other.conversationId, conversationId) || other.conversationId == conversationId)&&(identical(other.lastContactedAt, lastContactedAt) || other.lastContactedAt == lastContactedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Contact&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.company, company) || other.company == company)&&(identical(other.location, location) || other.location == location)&&(identical(other.primaryChannel, primaryChannel) || other.primaryChannel == primaryChannel)&&(identical(other.conversationId, conversationId) || other.conversationId == conversationId)&&(identical(other.lastContactedAt, lastContactedAt) || other.lastContactedAt == lastContactedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl,email,phone,primaryChannel,conversationId,lastContactedAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl,email,phone,company,location,primaryChannel,conversationId,lastContactedAt);
 
 @override
 String toString() {
-  return 'Contact(id: $id, displayName: $displayName, avatarUrl: $avatarUrl, email: $email, phone: $phone, primaryChannel: $primaryChannel, conversationId: $conversationId, lastContactedAt: $lastContactedAt)';
+  return 'Contact(id: $id, displayName: $displayName, avatarUrl: $avatarUrl, email: $email, phone: $phone, company: $company, location: $location, primaryChannel: $primaryChannel, conversationId: $conversationId, lastContactedAt: $lastContactedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ContactCopyWith<$Res>  {
   factory $ContactCopyWith(Contact value, $Res Function(Contact) _then) = _$ContactCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName, String? avatarUrl, String? email, String? phone, ChannelType primaryChannel, String conversationId, DateTime? lastContactedAt
+ String id, String displayName, String? avatarUrl, String? email, String? phone, String? company, String? location, ChannelType primaryChannel, String conversationId, DateTime? lastContactedAt
 });
 
 
@@ -65,13 +65,15 @@ class _$ContactCopyWithImpl<$Res>
 
 /// Create a copy of Contact
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? avatarUrl = freezed,Object? email = freezed,Object? phone = freezed,Object? primaryChannel = null,Object? conversationId = null,Object? lastContactedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? avatarUrl = freezed,Object? email = freezed,Object? phone = freezed,Object? company = freezed,Object? location = freezed,Object? primaryChannel = null,Object? conversationId = null,Object? lastContactedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,company: freezed == company ? _self.company : company // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as String?,primaryChannel: null == primaryChannel ? _self.primaryChannel : primaryChannel // ignore: cast_nullable_to_non_nullable
 as ChannelType,conversationId: null == conversationId ? _self.conversationId : conversationId // ignore: cast_nullable_to_non_nullable
 as String,lastContactedAt: freezed == lastContactedAt ? _self.lastContactedAt : lastContactedAt // ignore: cast_nullable_to_non_nullable
@@ -157,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  String? company,  String? location,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Contact() when $default != null:
-return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);case _:
+return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.company,_that.location,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);case _:
   return orElse();
 
 }
@@ -178,10 +180,10 @@ return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.pho
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  String? company,  String? location,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Contact():
-return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);}
+return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.company,_that.location,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -195,10 +197,10 @@ return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.pho
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String? avatarUrl,  String? email,  String? phone,  String? company,  String? location,  ChannelType primaryChannel,  String conversationId,  DateTime? lastContactedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Contact() when $default != null:
-return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);case _:
+return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.phone,_that.company,_that.location,_that.primaryChannel,_that.conversationId,_that.lastContactedAt);case _:
   return null;
 
 }
@@ -210,7 +212,7 @@ return $default(_that.id,_that.displayName,_that.avatarUrl,_that.email,_that.pho
 
 
 class _Contact implements Contact {
-  const _Contact({required this.id, required this.displayName, this.avatarUrl, this.email, this.phone, required this.primaryChannel, required this.conversationId, this.lastContactedAt});
+  const _Contact({required this.id, required this.displayName, this.avatarUrl, this.email, this.phone, this.company, this.location, required this.primaryChannel, required this.conversationId, this.lastContactedAt});
   
 
 @override final  String id;
@@ -218,6 +220,8 @@ class _Contact implements Contact {
 @override final  String? avatarUrl;
 @override final  String? email;
 @override final  String? phone;
+@override final  String? company;
+@override final  String? location;
 @override final  ChannelType primaryChannel;
 // Mock-data convenience only — lets "View conversation" jump straight
 // to it. The real schema points the other way (conversations ->
@@ -235,16 +239,16 @@ _$ContactCopyWith<_Contact> get copyWith => __$ContactCopyWithImpl<_Contact>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Contact&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.primaryChannel, primaryChannel) || other.primaryChannel == primaryChannel)&&(identical(other.conversationId, conversationId) || other.conversationId == conversationId)&&(identical(other.lastContactedAt, lastContactedAt) || other.lastContactedAt == lastContactedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Contact&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.company, company) || other.company == company)&&(identical(other.location, location) || other.location == location)&&(identical(other.primaryChannel, primaryChannel) || other.primaryChannel == primaryChannel)&&(identical(other.conversationId, conversationId) || other.conversationId == conversationId)&&(identical(other.lastContactedAt, lastContactedAt) || other.lastContactedAt == lastContactedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl,email,phone,primaryChannel,conversationId,lastContactedAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,avatarUrl,email,phone,company,location,primaryChannel,conversationId,lastContactedAt);
 
 @override
 String toString() {
-  return 'Contact(id: $id, displayName: $displayName, avatarUrl: $avatarUrl, email: $email, phone: $phone, primaryChannel: $primaryChannel, conversationId: $conversationId, lastContactedAt: $lastContactedAt)';
+  return 'Contact(id: $id, displayName: $displayName, avatarUrl: $avatarUrl, email: $email, phone: $phone, company: $company, location: $location, primaryChannel: $primaryChannel, conversationId: $conversationId, lastContactedAt: $lastContactedAt)';
 }
 
 
@@ -255,7 +259,7 @@ abstract mixin class _$ContactCopyWith<$Res> implements $ContactCopyWith<$Res> {
   factory _$ContactCopyWith(_Contact value, $Res Function(_Contact) _then) = __$ContactCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName, String? avatarUrl, String? email, String? phone, ChannelType primaryChannel, String conversationId, DateTime? lastContactedAt
+ String id, String displayName, String? avatarUrl, String? email, String? phone, String? company, String? location, ChannelType primaryChannel, String conversationId, DateTime? lastContactedAt
 });
 
 
@@ -272,13 +276,15 @@ class __$ContactCopyWithImpl<$Res>
 
 /// Create a copy of Contact
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? avatarUrl = freezed,Object? email = freezed,Object? phone = freezed,Object? primaryChannel = null,Object? conversationId = null,Object? lastContactedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? avatarUrl = freezed,Object? email = freezed,Object? phone = freezed,Object? company = freezed,Object? location = freezed,Object? primaryChannel = null,Object? conversationId = null,Object? lastContactedAt = freezed,}) {
   return _then(_Contact(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
+as String?,company: freezed == company ? _self.company : company // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as String?,primaryChannel: null == primaryChannel ? _self.primaryChannel : primaryChannel // ignore: cast_nullable_to_non_nullable
 as ChannelType,conversationId: null == conversationId ? _self.conversationId : conversationId // ignore: cast_nullable_to_non_nullable
 as String,lastContactedAt: freezed == lastContactedAt ? _self.lastContactedAt : lastContactedAt // ignore: cast_nullable_to_non_nullable

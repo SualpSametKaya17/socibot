@@ -130,7 +130,10 @@ class _ConversationWorkspaceState extends ConsumerState<ConversationWorkspace> {
                       : messages
                             .where((m) => m.text.toLowerCase().contains(query))
                             .toList();
-                  return MessageList(messages: visible);
+                  return MessageList(
+                    messages: visible,
+                    assignedAgentName: conversation.assignedAgentName,
+                  );
                 },
               ),
             ),

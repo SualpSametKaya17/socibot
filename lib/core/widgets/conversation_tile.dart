@@ -18,6 +18,7 @@ class ConversationTile extends StatelessWidget {
     required this.statusBadge,
     this.lastMessagePreview,
     this.lastMessageAt,
+    this.assignedAgentName,
     this.unreadCount = 0,
     this.selected = false,
     this.onTap,
@@ -29,6 +30,10 @@ class ConversationTile extends StatelessWidget {
   final Widget statusBadge;
   final String? lastMessagePreview;
   final DateTime? lastMessageAt;
+
+  /// Shown as a small "Assigned to X" line when set — null renders
+  /// nothing rather than an "Unassigned" placeholder.
+  final String? assignedAgentName;
   final int unreadCount;
   final bool selected;
   final VoidCallback? onTap;
@@ -45,6 +50,7 @@ class ConversationTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: selected ? colors.primarySoft : Colors.transparent,
         borderRadius: AppRadius.mdAll,
+        border: selected ? Border.all(color: colors.primary) : null,
       ),
       child: Material(
         color: Colors.transparent,
@@ -56,8 +62,8 @@ class ConversationTile extends StatelessWidget {
           splashColor: colors.primarySoft,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm + 2,
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +71,7 @@ class ConversationTile extends StatelessWidget {
                 AppAvatar(
                   name: contactName,
                   imageUrl: contactAvatarUrl,
-                  radius: 20,
+                  radius: 18,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -133,6 +139,17 @@ class ConversationTile extends StatelessWidget {
                               _UnreadCountPill(count: unreadCount),
                             ],
                           ],
+                        ),
+                      ],
+                      if (assignedAgentName != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Assigned to $assignedAgentName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colors.textMuted,
+                          ),
                         ),
                       ],
                     ],

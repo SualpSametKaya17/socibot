@@ -7,14 +7,24 @@ import '../../../../core/widgets/fade_slide_in.dart';
 import '../../../../core/widgets/message_bubble.dart';
 import '../../../conversations/domain/message.dart';
 import '../../../conversations/domain/message_direction.dart';
+import 'system_message.dart';
 
 /// The scrollable thread, oldest to newest, with a subtle date separator
 /// whenever the day changes. Auto-scrolls to the newest message whenever
 /// one is added (including on first open).
 class MessageList extends StatefulWidget {
-  const MessageList({super.key, required this.messages});
+  const MessageList({
+    super.key,
+    required this.messages,
+    this.assignedAgentName,
+  });
 
   final List<Message> messages;
+
+  /// When set, shows a small "Assigned to X" system-style line above the
+  /// thread — real data (the conversation's actual assignee), not a
+  /// fabricated activity log.
+  final String? assignedAgentName;
 
   @override
   State<MessageList> createState() => _MessageListState();
@@ -80,6 +90,13 @@ class _MessageListState extends State<MessageList> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (index == 0 && widget.assignedAgentName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: SystemMessage(
+                      text: 'Assigned to ${widget.assignedAgentName}',
+                    ),
+                  ),
                 if (showDateSeparator) _DateSeparator(date: message.createdAt),
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),

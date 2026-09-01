@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/features/inbox/presentation/inbox_screen.dart';
-import 'package:socibot/features/inbox/presentation/widgets/inbox_filter_sidebar.dart';
+import 'package:socibot/features/inbox/presentation/widgets/channel_rail.dart';
 
 void main() {
   // Sets the *real* test viewport (not just the MediaQuery data a widget
@@ -41,6 +41,10 @@ void main() {
       await pumpInbox(tester, size: const Size(400, 800));
       await tester.pumpAndSettle();
 
+      // Search starts collapsed behind the search icon.
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
       await tester.enterText(find.byType(TextField), 'Elena');
       await tester.pumpAndSettle();
 
@@ -50,6 +54,9 @@ void main() {
 
     testWidgets('no results shows the empty state', (tester) async {
       await pumpInbox(tester, size: const Size(400, 800));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'nobody matches this');
@@ -80,35 +87,32 @@ void main() {
   });
 
   group('InboxScreen (desktop)', () {
-    testWidgets('shows the filter sidebar, list, and workspace side by side', (
+    testWidgets('shows the channel rail, list, workspace and customer panel', (
       tester,
     ) async {
       await pumpInbox(tester, size: const Size(1400, 900));
       await tester.pumpAndSettle();
 
       expect(find.text('Select a conversation'), findsOneWidget);
-      expect(find.text('Inbox'), findsOneWidget); // filter sidebar header
-      expect(find.text('Mine'), findsOneWidget);
-      expect(find.text('Unassigned'), findsOneWidget);
+      expect(find.byType(ChannelRail), findsOneWidget);
+      expect(find.text('All Channel'), findsOneWidget);
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
 
       expect(find.text('Select a conversation'), findsNothing);
-      // Contact name now appears twice: once in the list tile, once in
-      // the workspace header.
-      expect(find.text('Elena Martinez'), findsNWidgets(2));
+      // Contact name now appears three times: the list tile, the
+      // workspace header, and the customer detail panel's profile card.
+      expect(find.text('Elena Martinez'), findsNWidgets(3));
     });
 
-    testWidgets('status filter in the sidebar narrows the list', (
-      tester,
-    ) async {
+    testWidgets('status tab narrows the list', (tester) async {
       await pumpInbox(tester, size: const Size(1400, 900));
       await tester.pumpAndSettle();
 
       await tester.tap(
         find.descendant(
-          of: find.byType(InboxFilterSidebar),
+          of: find.byKey(const Key('inbox-status-tabs')),
           matching: find.text('Resolved'),
         ),
       );
@@ -119,13 +123,15 @@ void main() {
       expect(find.text('Elena Martinez'), findsNothing);
     });
 
-    testWidgets('Mine quick filter narrows the list to the current agent', (
+    testWidgets('assignment dropdown narrows the list to the current agent', (
       tester,
     ) async {
       await pumpInbox(tester, size: const Size(1400, 900));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Mine'));
+      await tester.tap(find.byKey(const Key('inbox-assign-dropdown')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Assign to me'));
       await tester.pumpAndSettle();
 
       // Elena Martinez is assigned to the mock current agent ("You").
@@ -133,31 +139,30 @@ void main() {
       expect(find.text('Marcus Chen'), findsNothing); // unassigned
     });
 
-    testWidgets('Unreplied toggle keeps only conversations awaiting a reply', (
-      tester,
-    ) async {
-      await pumpInbox(tester, size: const Size(1400, 900));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'unreplied-only toggle keeps only conversations awaiting a reply',
+      (tester) async {
+        await pumpInbox(tester, size: const Size(1400, 900));
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Unreplied'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Show unreplied only'));
+        await tester.pumpAndSettle();
 
-      // Elena's last message is incoming (unreplied); Diego's last
-      // message is the agent's outgoing closing reply.
-      expect(find.text('Elena Martinez'), findsOneWidget);
-      expect(find.text('Diego Fernandez'), findsNothing);
-    });
+        // Elena's last message is incoming (unreplied); Diego's last
+        // message is the agent's outgoing closing reply.
+        expect(find.text('Elena Martinez'), findsOneWidget);
+        expect(find.text('Diego Fernandez'), findsNothing);
+      },
+    );
 
-    testWidgets('CHANNELS filter in the sidebar narrows the list by channel', (
-      tester,
-    ) async {
+    testWidgets('channel rail narrows the list by channel', (tester) async {
       await pumpInbox(tester, size: const Size(1400, 900));
       await tester.pumpAndSettle();
 
       await tester.tap(
         find.descendant(
-          of: find.byType(InboxFilterSidebar),
-          matching: find.text('WhatsApp'),
+          of: find.byType(ChannelRail),
+          matching: find.byTooltip('WhatsApp'),
         ),
       );
       await tester.pumpAndSettle();
@@ -169,8 +174,8 @@ void main() {
       // Tapping the same channel again clears the filter.
       await tester.tap(
         find.descendant(
-          of: find.byType(InboxFilterSidebar),
-          matching: find.text('WhatsApp'),
+          of: find.byType(ChannelRail),
+          matching: find.byTooltip('WhatsApp'),
         ),
       );
       await tester.pumpAndSettle();
@@ -205,6 +210,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Thanks for reaching out!'), findsOneWidget);
+    });
+
+    testWidgets('customer detail panel shows the selected contact', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No conversation selected'), findsOneWidget);
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Contact Information'), findsOneWidget);
+      expect(find.text('elena.martinez@example.com'), findsOneWidget);
+      expect(find.text('Conversation room details'), findsOneWidget);
     });
   });
 }

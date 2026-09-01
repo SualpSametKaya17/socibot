@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/app_avatar.dart';
@@ -7,10 +8,11 @@ import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation.dart';
 
-/// Region 4's header bar: who this conversation is with, its channel and
-/// status, and a search-within-conversation toggle. Assign/more-menu are
-/// intentionally rendered disabled — conversation assignment is a later
-/// stage (AŞAMA 14), not faked here.
+/// Region 4's header bar: who this conversation is with, who it's
+/// assigned to, a Resolve action, and a search-within-conversation
+/// toggle. Assign/Resolve are intentionally rendered disabled —
+/// conversation assignment/status mutation is a later stage (AŞAMA 14),
+/// not faked here.
 class ConversationWorkspaceHeader extends StatelessWidget {
   const ConversationWorkspaceHeader({
     super.key,
@@ -26,8 +28,8 @@ class ConversationWorkspaceHeader extends StatelessWidget {
   final bool searching;
   final VoidCallback onToggleSearch;
 
-  /// Drops the disabled assign/more placeholders — there isn't room for
-  /// them on a narrow (mobile, full-screen-pushed) header.
+  /// Drops the assigned-to chip and Resolve button — there isn't room
+  /// for them on a narrow (mobile, full-screen-pushed) header.
   final bool compact;
 
   @override
@@ -78,30 +80,114 @@ class ConversationWorkspaceHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (!compact) ...[
+            _AssignedToChip(agentName: conversation.assignedAgentName),
+            const SizedBox(width: AppSpacing.sm),
+            const _ResolveButton(),
+            const SizedBox(width: AppSpacing.xs),
+          ],
           IconButton(
             tooltip: 'Search this conversation',
             isSelected: searching,
             icon: const Icon(Icons.search, size: 20),
             onPressed: onToggleSearch,
           ),
-          if (!compact) ...[
-            const IconButton(
-              tooltip: 'Assign agent (coming in a later stage)',
-              icon: Icon(Icons.person_add_alt_outlined, size: 20),
-              onPressed: null,
-            ),
-            const IconButton(
-              tooltip: 'More (coming in a later stage)',
-              icon: Icon(Icons.more_vert, size: 20),
-              onPressed: null,
-            ),
-          ],
           IconButton(
             tooltip: 'Close',
             icon: const Icon(Icons.close, size: 20),
             onPressed: onClose,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AssignedToChip extends StatelessWidget {
+  const _AssignedToChip({required this.agentName});
+
+  final String? agentName;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final label = agentName ?? 'Unassigned';
+
+    return Tooltip(
+      message: 'Reassigning is coming in a later stage',
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Assigned to',
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: colors.textMuted),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            if (agentName != null) ...[
+              AppAvatar(name: agentName!, radius: 10),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(Icons.expand_more, size: 14, color: colors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResolveButton extends StatelessWidget {
+  const _ResolveButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Tooltip(
+      message: 'Changing status here is coming in a later stage',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.textMuted.withValues(alpha: 0.3),
+          borderRadius: AppRadius.mdAll,
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Resolve',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              SizedBox(width: 2),
+              Icon(Icons.expand_more, size: 16, color: Colors.white),
+            ],
+          ),
+        ),
       ),
     );
   }

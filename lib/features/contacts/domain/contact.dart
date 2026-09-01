@@ -16,6 +16,8 @@ sealed class Contact with _$Contact {
     String? avatarUrl,
     String? email,
     String? phone,
+    String? company,
+    String? location,
     required ChannelType primaryChannel,
     // Mock-data convenience only — lets "View conversation" jump straight
     // to it. The real schema points the other way (conversations ->

@@ -1,0 +1,510 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_semantic_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../channels/domain/channel_providers.dart';
+import '../../../contacts/domain/contact.dart';
+import '../../../contacts/domain/contact_providers.dart';
+import '../../../conversations/domain/conversation.dart';
+import '../../../conversations/domain/conversation_providers.dart';
+
+/// Region 5: the selected conversation's customer — profile, contact
+/// info, who's handling it, tags, and room metadata. Resolves the
+/// selected conversation the same way [ConversationWorkspace] does, and
+/// looks the [Contact] up by conversation id (mock-convenience
+/// relationship, documented on [Contact] itself) rather than fabricating
+/// one when no match exists.
+class CustomerDetailPanel extends ConsumerStatefulWidget {
+  const CustomerDetailPanel({super.key});
+
+  @override
+  ConsumerState<CustomerDetailPanel> createState() =>
+      _CustomerDetailPanelState();
+}
+
+class _CustomerDetailPanelState extends ConsumerState<CustomerDetailPanel> {
+  int _tabIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final selectedId = ref.watch(selectedConversationIdProvider);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(left: BorderSide(color: colors.border)),
+      ),
+      child: selectedId == null
+          ? const EmptyState(
+              icon: Icons.person_outline,
+              title: 'No conversation selected',
+            )
+          : ref
+                .watch(conversationsProvider)
+                .when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => EmptyState(
+                    icon: Icons.error_outline,
+                    title: 'Could not load customer',
+                    message: '$error',
+                  ),
+                  data: (conversations) {
+                    final matches = conversations.where(
+                      (c) => c.id == selectedId,
+                    );
+                    if (matches.isEmpty) {
+                      return const EmptyState(
+                        icon: Icons.person_outline,
+                        title: 'No conversation selected',
+                      );
+                    }
+                    return _CustomerDetailContent(
+                      conversation: matches.first,
+                      tabIndex: _tabIndex,
+                      onTabSelected: (index) =>
+                          setState(() => _tabIndex = index),
+                    );
+                  },
+                ),
+    );
+  }
+}
+
+class _CustomerDetailContent extends ConsumerWidget {
+  const _CustomerDetailContent({
+    required this.conversation,
+    required this.tabIndex,
+    required this.onTabSelected,
+  });
+
+  final Conversation conversation;
+  final int tabIndex;
+  final ValueChanged<int> onTabSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contact = ref.watch(contactByConversationIdProvider(conversation.id));
+    final channels = ref.watch(channelsProvider).valueOrNull ?? const [];
+    String? channelAccount;
+    for (final connection in channels) {
+      if (connection.type == conversation.channel) {
+        channelAccount = connection.accountName;
+        break;
+      }
+    }
+
+    return Column(
+      children: [
+        _DetailTabs(selected: tabIndex, onSelected: onTabSelected),
+        const Divider(height: 1),
+        Expanded(
+          child: tabIndex != 0
+              ? const _ComingSoonTab()
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _ProfileCard(
+                        contact: contact,
+                        fallbackName: conversation.contactName,
+                        fallbackAvatarUrl: conversation.contactAvatarUrl,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _SectionCard(
+                        title: 'Contact Information',
+                        child: _ContactInformation(contact: contact),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _SectionCard(
+                        title: 'Agent Handled',
+                        child: _AgentHandled(
+                          agentName: conversation.assignedAgentName,
+                          since: conversation.createdAt,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      const _SectionCard(
+                        title: 'Tags',
+                        trailing: _DisabledAddIcon(
+                          tooltip: 'Tagging is coming in a later stage',
+                        ),
+                        child: _EmptySectionNote(text: 'No tags yet'),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _SectionCard(
+                        title: 'Conversation room details',
+                        child: _RoomDetails(
+                          conversation: conversation,
+                          channelAccount: channelAccount,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailTabs extends StatelessWidget {
+  const _DetailTabs({required this.selected, required this.onSelected});
+
+  final int selected;
+  final ValueChanged<int> onSelected;
+
+  static const _tabs = [
+    (icon: Icons.info_outline, label: 'Detail'),
+    (icon: Icons.people_outline, label: 'Contacts (coming soon)'),
+    (icon: Icons.history, label: 'Activity (coming soon)'),
+    (icon: Icons.sticky_note_2_outlined, label: 'Notes (coming soon)'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          for (var i = 0; i < _tabs.length; i++)
+            Tooltip(
+              message: _tabs[i].label,
+              child: InkWell(
+                borderRadius: AppRadius.mdAll,
+                onTap: () => onSelected(i),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: selected == i ? colors.primarySoft : null,
+                    borderRadius: AppRadius.mdAll,
+                  ),
+                  child: Icon(
+                    _tabs[i].icon,
+                    size: 18,
+                    color: selected == i ? colors.primary : colors.textMuted,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComingSoonTab extends StatelessWidget {
+  const _ComingSoonTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Text(
+          'Coming in a later stage',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: context.colors.textMuted),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({
+    required this.contact,
+    required this.fallbackName,
+    required this.fallbackAvatarUrl,
+  });
+
+  final Contact? contact;
+  final String fallbackName;
+  final String? fallbackAvatarUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final name = contact?.displayName ?? fallbackName;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: Tooltip(
+              message: 'More actions — coming in a later stage',
+              child: Icon(Icons.more_horiz, size: 18, color: colors.textMuted),
+            ),
+          ),
+          AppAvatar(
+            name: name,
+            imageUrl: contact?.avatarUrl ?? fallbackAvatarUrl,
+            radius: 28,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            name,
+            style: AppTypography.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+          if (contact?.company != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              contact!.company!,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: colors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          if (contact?.location != null) ...[
+            const SizedBox(height: 2),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.place_outlined, size: 12, color: colors.textMuted),
+                const SizedBox(width: 2),
+                Text(
+                  contact!.location!,
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: colors.textMuted),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.child, this.trailing});
+
+  final String title;
+  final Widget child;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.textMuted,
+                    letterSpacing: 0.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              ?trailing,
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _DisabledAddIcon extends StatelessWidget {
+  const _DisabledAddIcon({required this.tooltip});
+
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Icon(Icons.add, size: 16, color: context.colors.textMuted),
+    );
+  }
+}
+
+class _EmptySectionNote extends StatelessWidget {
+  const _EmptySectionNote({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodySmall
+          ?.copyWith(color: context.colors.textMuted),
+    );
+  }
+}
+
+class _ContactInformation extends StatelessWidget {
+  const _ContactInformation({required this.contact});
+
+  final Contact? contact;
+
+  @override
+  Widget build(BuildContext context) {
+    if (contact == null || (contact!.email == null && contact!.phone == null)) {
+      return const _EmptySectionNote(text: 'No contact info on file');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (contact!.phone != null)
+          _InfoRow(icon: Icons.phone_outlined, label: contact!.phone!),
+        if (contact!.phone != null && contact!.email != null)
+          const SizedBox(height: AppSpacing.xs + 2),
+        if (contact!.email != null)
+          _InfoRow(icon: Icons.email_outlined, label: contact!.email!),
+      ],
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: colors.textMuted),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: colors.textPrimary),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AgentHandled extends StatelessWidget {
+  const _AgentHandled({required this.agentName, required this.since});
+
+  final String? agentName;
+  final DateTime? since;
+
+  @override
+  Widget build(BuildContext context) {
+    if (agentName == null) {
+      return const _EmptySectionNote(text: 'Unassigned');
+    }
+
+    final colors = context.colors;
+    return Row(
+      children: [
+        AppAvatar(name: agentName!, radius: 14),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                agentName!,
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              if (since != null)
+                Text(
+                  '${DateFormat.MMMd().add_jm().format(since!)} – Now',
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: colors.textMuted),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RoomDetails extends StatelessWidget {
+  const _RoomDetails({
+    required this.conversation,
+    required this.channelAccount,
+  });
+
+  final Conversation conversation;
+  final String? channelAccount;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final rows = <(String, String?)>[
+      (
+        'Channel',
+        channelAccount == null
+            ? conversation.channel.label
+            : '${conversation.channel.label} ($channelAccount)',
+      ),
+      if (conversation.createdAt != null)
+        (
+          'Create Conversation',
+          DateFormat.yMMMd().add_jm().format(conversation.createdAt!),
+        ),
+      if (conversation.lastMessageAt != null)
+        (
+          'Last Activity',
+          DateFormat.yMMMd().add_jm().format(conversation.lastMessageAt!),
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final row in rows) ...[
+          Text(
+            row.$1,
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: colors.textMuted),
+          ),
+          Text(row.$2!, style: Theme.of(context).textTheme.bodySmall),
+          if (row != rows.last) const SizedBox(height: AppSpacing.xs + 2),
+        ],
+      ],
+    );
+  }
+}

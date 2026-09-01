@@ -21,6 +21,9 @@ sealed class Conversation with _$Conversation {
     required ConversationStatus status,
     String? lastMessagePreview,
     DateTime? lastMessageAt,
+    // When the conversation thread was first created — shown in the
+    // customer detail panel's "Conversation room details".
+    DateTime? createdAt,
     @Default(0) int unreadCount,
     // Mock-only for now — a real "assigned_to" column/UI lands in the
     // conversation-assignment stage. Null means unassigned.

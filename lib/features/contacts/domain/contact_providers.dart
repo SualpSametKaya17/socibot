@@ -32,3 +32,18 @@ final filteredContactsProvider = Provider<AsyncValue<List<Contact>>>((ref) {
     return filtered;
   });
 });
+
+/// The [Contact] behind one conversation, for the Inbox workspace's
+/// customer detail panel. Null while contacts are loading/erroring or
+/// when no contact's mock `conversationId` matches (real schema looks
+/// this up the other way — see [Contact]'s doc comment).
+final contactByConversationIdProvider = Provider.family<Contact?, String>((
+  ref,
+  conversationId,
+) {
+  final contacts = ref.watch(contactsProvider).valueOrNull ?? const [];
+  for (final contact in contacts) {
+    if (contact.conversationId == conversationId) return contact;
+  }
+  return null;
+});
