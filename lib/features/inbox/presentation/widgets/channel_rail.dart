@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/constants/channel_type.dart';
+import '../../../../core/constants/route_paths.dart';
 import '../../../channels/domain/channel_providers.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 
@@ -59,9 +61,9 @@ class ChannelRail extends ConsumerWidget {
           ),
         const Spacer(),
         _RailButton(
-          tooltip: 'Add a channel (Channels page)',
+          tooltip: 'Add a channel',
           selected: false,
-          onTap: null,
+          onTap: () => context.go(RoutePaths.channels),
           child: Icon(Icons.add, size: 18, color: colors.textMuted),
         ),
         const SizedBox(height: AppSpacing.md),

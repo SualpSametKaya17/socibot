@@ -20,12 +20,24 @@ class AppAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundImage: CachedNetworkImageProvider(imageUrl!),
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
+          width: radius * 2,
+          height: radius * 2,
+          fit: BoxFit.cover,
+          // A broken/unreachable image URL falls back to initials rather
+          // than a blank or broken-image circle.
+          errorWidget: (context, url, error) => _initials(context),
+          placeholder: (context, url) => _initials(context),
+        ),
       );
     }
 
+    return _initials(context);
+  }
+
+  Widget _initials(BuildContext context) {
     final colors = context.colors;
     return CircleAvatar(
       radius: radius,
