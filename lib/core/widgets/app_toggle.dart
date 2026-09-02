@@ -23,27 +23,30 @@ class AppToggle extends StatelessWidget {
     final colors = context.colors;
     final canInteract = enabled && onChanged != null;
 
-    return GestureDetector(
-      onTap: canInteract ? () => onChanged!(!value) : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        width: 34,
-        height: 20,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: !enabled
-              ? colors.textMuted.withValues(alpha: 0.15)
-              : (value ? colors.primary : colors.borderStrong),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-        child: const DecoratedBox(
+    return MouseRegion(
+      cursor: canInteract ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: canInteract ? () => onChanged!(!value) : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          width: 34,
+          height: 20,
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+            color: !enabled
+                ? colors.textMuted.withValues(alpha: 0.15)
+                : (value ? colors.primary : colors.borderStrong),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: SizedBox(width: 16, height: 16),
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox(width: 16, height: 16),
+          ),
         ),
       ),
     );

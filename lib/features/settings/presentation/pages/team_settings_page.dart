@@ -149,7 +149,7 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
                       delay: Duration(milliseconds: 25 * i),
                       child: isNarrow
                           ? TeamMemberMobileRow(member: filtered[i])
-                          : TeamTableRow(member: filtered[i], onMoreTap: () {}),
+                          : TeamTableRow(member: filtered[i]),
                     ),
                     if (i != filtered.length - 1)
                       Divider(height: 1, color: colors.border),
@@ -171,7 +171,7 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
                   for (var i = 0; i < 4; i++) ...[
                     isNarrow
                         ? TeamMemberMobileRow(member: _dummyMember)
-                        : TeamTableRow(member: _dummyMember, onMoreTap: () {}),
+                        : TeamTableRow(member: _dummyMember),
                     if (i != 3) Divider(height: 1, color: colors.border),
                   ],
                 ],

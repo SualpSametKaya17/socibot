@@ -44,101 +44,90 @@ class TeamTableHeader extends StatelessWidget {
 
 /// One desktop/tablet Team table row — compact (52-58px), flat, hairline
 /// separators handled by the caller.
+///
+/// Not wrapped in a tappable [InkWell] — there's no member detail view to
+/// open yet, and a hover/press cue that leads nowhere on click reads as
+/// broken rather than informative.
 class TeamTableRow extends StatelessWidget {
-  const TeamTableRow({
-    super.key,
-    required this.member,
-    required this.onMoreTap,
-  });
+  const TeamTableRow({super.key, required this.member});
 
   final OrganizationMember member;
-  final VoidCallback onMoreTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        hoverColor: colors.primarySoft.withValues(alpha: 0.4),
-        onTap: () {},
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm + 4,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Row(
-                  children: [
-                    AppAvatar(name: member.displayName, radius: 15),
-                    const Gap(AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            member.displayName,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: colors.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (member.email != null)
-                            Text(
-                              member.email!,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.caption.copyWith(
-                                color: colors.textMuted,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  member.role.label,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: colors.textSecondary,
-                  ),
-                ),
-              ),
-              Expanded(flex: 2, child: _MemberStatusBadge(member: member)),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  member.lastActiveAt == null
-                      ? '—'
-                      : timeago.format(
-                          member.lastActiveAt!,
-                          locale: 'en_short',
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + 4,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Row(
+              children: [
+                AppAvatar(name: member.displayName, radius: 15),
+                const Gap(AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        member.displayName,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
-                  style: AppTypography.bodySmall.copyWith(
-                    color: colors.textSecondary,
+                      ),
+                      if (member.email != null)
+                        Text(
+                          member.email!,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: colors.textMuted,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-              SizedBox(
-                width: 32,
-                child: IconButton(
-                  tooltip: 'More actions (coming in a later stage)',
-                  icon: const Icon(Icons.more_horiz, size: 18),
-                  onPressed: onMoreTap,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              member.role.label,
+              style: AppTypography.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(flex: 2, child: _MemberStatusBadge(member: member)),
+          Expanded(
+            flex: 2,
+            child: Text(
+              member.lastActiveAt == null
+                  ? '—'
+                  : timeago.format(member.lastActiveAt!, locale: 'en_short'),
+              style: AppTypography.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: IconButton(
+              tooltip: 'More actions (coming in a later stage)',
+              icon: const Icon(Icons.more_horiz, size: 18),
+              onPressed: null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -211,10 +200,10 @@ class TeamMemberMobileRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
+          const IconButton(
             tooltip: 'More actions (coming in a later stage)',
-            icon: const Icon(Icons.more_horiz, size: 18),
-            onPressed: () {},
+            icon: Icon(Icons.more_horiz, size: 18),
+            onPressed: null,
           ),
         ],
       ),
