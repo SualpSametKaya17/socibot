@@ -47,3 +47,16 @@ flutter run --dart-define-from-file=config/dev.json -d chrome   # or linux, etc.
 flutter analyze
 flutter test
 ```
+
+A VS Code launch config (`.vscode/launch.json`) is included, so `flutter run` via
+the Run and Debug panel already passes `--dart-define-from-file=config/dev.json`
+for you.
+
+**Seeing a blank/black screen with no on-screen error?** That's
+`EnvConfig.assertValid()` throwing before the first frame renders — almost
+always because `config/dev.json` doesn't exist yet, or the app was launched
+without `--dart-define-from-file=config/dev.json` (the actual error is only
+visible in the terminal/DevTools console, not on screen). Run
+`cp config/dev.example.json config/dev.json` first; the placeholder values in
+that file are enough to get past this and use the app (it's mock-data-backed —
+every screen except sign-in itself works without a real Supabase project).
