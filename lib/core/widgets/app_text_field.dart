@@ -19,6 +19,12 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.onChanged,
     this.suffixIcon,
+    this.obscureText = false,
+    this.validator,
+    this.keyboardType,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.autovalidateMode,
   });
 
   final String label;
@@ -30,6 +36,16 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final ValueChanged<String>? onChanged;
   final Widget? suffixIcon;
+
+  /// Form-field extras — needed by auth screens (validation, password
+  /// masking) but not by the plain Settings fields this widget started
+  /// out covering, so they default to inert/off.
+  final bool obscureText;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
+  final AutovalidateMode? autovalidateMode;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +67,12 @@ class AppTextField extends StatelessWidget {
           readOnly: readOnly,
           enabled: enabled,
           onChanged: onChanged,
+          obscureText: obscureText,
+          validator: validator,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
+          autovalidateMode: autovalidateMode,
           style: AppTypography.bodySmall.copyWith(color: colors.textPrimary),
           decoration: InputDecoration(
             hintText: hintText,
