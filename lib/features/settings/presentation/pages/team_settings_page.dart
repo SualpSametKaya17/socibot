@@ -68,44 +68,13 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
         ),
       ),
       children: [
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Search members',
-                  prefixIcon: Icon(Icons.search, size: 18),
-                  isDense: true,
-                ),
-                onChanged: (value) =>
-                    setState(() => _query = value.trim().toLowerCase()),
-              ),
-            ),
-            const Gap(AppSpacing.md),
-            Expanded(
-              child: DropdownButtonFormField<OrganizationRole?>(
-                initialValue: _roleFilter,
-                isExpanded: true,
-                icon: Icon(
-                  Icons.expand_more,
-                  size: 18,
-                  color: colors.textMuted,
-                ),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  hintText: 'All roles',
-                ),
-                onChanged: (value) => setState(() => _roleFilter = value),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('All roles')),
-                  for (final role in OrganizationRole.values)
-                    DropdownMenuItem(value: role, child: Text(role.label)),
-                ],
-              ),
-            ),
-          ],
+        _MemberFiltersRow(
+          isNarrow: isNarrow,
+          searchController: _searchController,
+          roleFilter: _roleFilter,
+          onSearchChanged: (value) =>
+              setState(() => _query = value.trim().toLowerCase()),
+          onRoleChanged: (value) => setState(() => _roleFilter = value),
         ),
         const Gap(AppSpacing.lg),
         membersAsync.when(
@@ -184,6 +153,67 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
             message: error is AppException ? error.message : '$error',
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// The search field + role dropdown above the member table. Side-by-side
+/// with a 2:1 flex on desktop/tablet; stacked full-width on mobile, where
+/// squeezing both into a shared row leaves neither legible.
+class _MemberFiltersRow extends StatelessWidget {
+  const _MemberFiltersRow({
+    required this.isNarrow,
+    required this.searchController,
+    required this.roleFilter,
+    required this.onSearchChanged,
+    required this.onRoleChanged,
+  });
+
+  final bool isNarrow;
+  final TextEditingController searchController;
+  final OrganizationRole? roleFilter;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<OrganizationRole?> onRoleChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    final searchField = TextField(
+      controller: searchController,
+      decoration: const InputDecoration(
+        hintText: 'Search members',
+        prefixIcon: Icon(Icons.search, size: 18),
+        isDense: true,
+      ),
+      onChanged: onSearchChanged,
+    );
+
+    final roleDropdown = DropdownButtonFormField<OrganizationRole?>(
+      initialValue: roleFilter,
+      isExpanded: true,
+      icon: Icon(Icons.expand_more, size: 18, color: colors.textMuted),
+      decoration: const InputDecoration(isDense: true, hintText: 'All roles'),
+      onChanged: onRoleChanged,
+      items: [
+        const DropdownMenuItem(value: null, child: Text('All roles')),
+        for (final role in OrganizationRole.values)
+          DropdownMenuItem(value: role, child: Text(role.label)),
+      ],
+    );
+
+    if (isNarrow) {
+      return Column(
+        children: [searchField, const Gap(AppSpacing.sm), roleDropdown],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(flex: 2, child: searchField),
+        const Gap(AppSpacing.md),
+        Expanded(child: roleDropdown),
       ],
     );
   }

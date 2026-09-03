@@ -25,29 +25,41 @@ class SettingsPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Row(
+    final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTypography.headingSmall.copyWith(fontSize: 19),
-              ),
-              const Gap(4),
-              Text(
-                description,
-                style: AppTypography.bodySmall.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-            ],
-          ),
+        Text(title, style: AppTypography.headingSmall.copyWith(fontSize: 19)),
+        const Gap(4),
+        Text(
+          description,
+          style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
         ),
-        ?trailing,
       ],
+    );
+
+    if (trailing == null) return titleBlock;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // A trailing action (e.g. Team's "Invite member" button) crammed
+        // next to the title on a narrow phone squeezes the text column
+        // down to near nothing — stack instead of sharing a row below
+        // this width.
+        if (constraints.maxWidth < 480) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [titleBlock, const Gap(AppSpacing.md), trailing!],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: titleBlock),
+            trailing!,
+          ],
+        );
+      },
     );
   }
 }
