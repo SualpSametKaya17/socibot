@@ -67,7 +67,7 @@ class ChannelCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               channel.accountName ?? 'Not connected yet',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              style: AppTypography.bodySmall.copyWith(
                 color: channel.accountName != null
                     ? colors.textSecondary
                     : colors.textMuted,
@@ -82,8 +82,7 @@ class ChannelCard extends StatelessWidget {
               channel.lastSyncAt != null
                   ? 'Last synced ${DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)}'
                   : 'Never synced',
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: colors.textMuted),
+              style: AppTypography.caption.copyWith(color: colors.textMuted),
             ),
             // Fills whatever room is left so the action button always
             // lands on the same baseline across every card in the grid,

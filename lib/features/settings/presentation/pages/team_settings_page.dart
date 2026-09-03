@@ -98,9 +98,17 @@ class _TeamSettingsPageState extends ConsumerState<TeamSettingsPage> {
               );
             }
             if (filtered.isEmpty) {
-              return const EmptyState(
+              return EmptyState(
                 icon: Icons.search_off,
                 title: 'No members match your filters',
+                action: OutlinedButton(
+                  onPressed: () => setState(() {
+                    _searchController.clear();
+                    _query = '';
+                    _roleFilter = null;
+                  }),
+                  child: const Text('Clear filters'),
+                ),
               );
             }
 

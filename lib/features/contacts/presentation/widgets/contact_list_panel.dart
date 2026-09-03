@@ -31,10 +31,12 @@ class _ContactListPanelState extends ConsumerState<ContactListPanel> {
 
   int _visibleCount = _pageSize;
   Timer? _debounce;
+  final _searchController = TextEditingController();
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -43,6 +45,12 @@ class _ContactListPanelState extends ConsumerState<ContactListPanel> {
     _debounce = Timer(const Duration(milliseconds: 300), () {
       ref.read(contactSearchQueryProvider.notifier).state = value;
     });
+  }
+
+  void _clearSearch() {
+    _debounce?.cancel();
+    _searchController.clear();
+    ref.read(contactSearchQueryProvider.notifier).state = '';
   }
 
   @override
@@ -64,6 +72,7 @@ class _ContactListPanelState extends ConsumerState<ContactListPanel> {
               Text('Contacts', style: AppTypography.headingSmall),
               const SizedBox(height: AppSpacing.sm),
               TextField(
+                controller: _searchController,
                 decoration: const InputDecoration(
                   hintText: 'Search contacts',
                   prefixIcon: Icon(Icons.search, size: 20),
@@ -80,10 +89,14 @@ class _ContactListPanelState extends ConsumerState<ContactListPanel> {
           child: contactsAsync.when(
             data: (contacts) {
               if (contacts.isEmpty) {
-                return const EmptyState(
+                return EmptyState(
                   icon: Icons.search_off,
                   title: 'No contacts found',
                   message: 'Try a different search term.',
+                  action: OutlinedButton(
+                    onPressed: _clearSearch,
+                    child: const Text('Clear search'),
+                  ),
                 );
               }
               final visible = contacts.take(_visibleCount).toList();

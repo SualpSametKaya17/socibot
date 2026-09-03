@@ -101,10 +101,7 @@ class _ContactDetailSkeleton extends StatelessWidget {
                           style: AppTypography.headingSmall,
                         ),
                         const Gap(6),
-                        Text(
-                          'Loading channel',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
+                        Text('Loading channel', style: AppTypography.caption),
                       ],
                     ),
                   ),
@@ -176,8 +173,9 @@ class _ContactDetail extends StatelessWidget {
                         const Gap(2),
                         Text(
                           contact.company!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colors.textSecondary),
+                          style: AppTypography.bodySmall.copyWith(
+                            color: colors.textSecondary,
+                          ),
                         ),
                       ],
                       const Gap(6),
@@ -195,8 +193,9 @@ class _ContactDetail extends StatelessWidget {
                             const Gap(2),
                             Text(
                               contact.location!,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: colors.textMuted),
+                              style: AppTypography.caption.copyWith(
+                                color: colors.textMuted,
+                              ),
                             ),
                           ],
                         ],
@@ -218,7 +217,7 @@ class _ContactDetail extends StatelessWidget {
                 children: [
                   Text(
                     'CONTACT INFORMATION',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: AppTypography.caption.copyWith(
                       color: colors.textMuted,
                       letterSpacing: 0.4,
                       fontWeight: FontWeight.w700,

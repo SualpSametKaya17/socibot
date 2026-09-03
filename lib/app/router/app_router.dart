@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/env_config.dart';
 import '../../core/constants/route_paths.dart';
 import '../../core/services/supabase/supabase_providers.dart';
+import '../theme/app_semantic_colors.dart';
 import '../../features/auth/domain/mock_auth_session.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
@@ -133,6 +134,40 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final colors = context.colors;
+
+    return Scaffold(
+      backgroundColor: colors.sidebar,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.forum_outlined,
+                size: 24,
+                color: colors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(colors.primary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

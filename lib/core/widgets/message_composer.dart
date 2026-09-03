@@ -1,10 +1,14 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_semantic_colors.dart';
 import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_typography.dart';
+import '../../features/settings/domain/settings_preferences.dart';
 
 /// A CRM-style composer anchored at the bottom of the conversation
 /// workspace: a utility row (attachment/emoji/saved-reply/AI-assist),
@@ -14,19 +18,21 @@ import '../../app/theme/app_spacing.dart';
 /// nothing is uploaded or persisted — that's the send-message Edge
 /// Function's job (AŞAMA 13). "Saved reply" and "AI Assist" are
 /// presentation-only placeholders — no such feature exists yet.
-class MessageComposer extends StatefulWidget {
+class MessageComposer extends ConsumerStatefulWidget {
   const MessageComposer({super.key, required this.onSend});
 
   final ValueChanged<String> onSend;
 
   @override
-  State<MessageComposer> createState() => _MessageComposerState();
+  ConsumerState<MessageComposer> createState() => _MessageComposerState();
 }
 
-class _MessageComposerState extends State<MessageComposer> {
+class _MessageComposerState extends ConsumerState<MessageComposer> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   String? _attachedFileName;
   bool _hasText = false;
+  bool _hasFocus = false;
 
   /// Local-only UI toggle — there's no separate internal-note persistence
   /// layer yet, so switching tabs just changes the composer's own
@@ -41,11 +47,21 @@ class _MessageComposerState extends State<MessageComposer> {
       final hasText = _controller.text.trim().isNotEmpty;
       if (hasText != _hasText) setState(() => _hasText = hasText);
     });
+    _focusNode.addListener(() {
+      // The focus manager can notify listeners while this element is
+      // mid-teardown (e.g. the route it's in is being popped) — guard
+      // against calling setState on a widget that's no longer mounted.
+      if (!mounted) return;
+      if (_focusNode.hasFocus != _hasFocus) {
+        setState(() => _hasFocus = _focusNode.hasFocus);
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -93,9 +109,50 @@ class _MessageComposerState extends State<MessageComposer> {
     );
   }
 
+  /// Enter-to-send, gated on the real Inbox settings preference
+  /// (`InboxPreferences.enterKeyBehavior`) — Shift+Enter always inserts a
+  /// newline regardless, matching every other chat composer's convention.
+  ///
+  /// Flutter's own default multiline newline-on-Enter shortcut only
+  /// matches a bare Enter (no modifiers), so it never fires while Shift is
+  /// held — the Shift+Enter case has to insert the newline itself rather
+  /// than falling through to that default.
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final isEnter =
+        event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.numpadEnter;
+    if (!isEnter) return KeyEventResult.ignored;
+
+    if (HardwareKeyboard.instance.isShiftPressed) {
+      _insertNewline();
+      return KeyEventResult.handled;
+    }
+
+    final behavior = ref.read(inboxPreferencesProvider).enterKeyBehavior;
+    if (behavior != EnterKeyBehavior.send) return KeyEventResult.ignored;
+    _send();
+    return KeyEventResult.handled;
+  }
+
+  void _insertNewline() {
+    final selection = _controller.selection;
+    final text = _controller.text;
+    final start = selection.start < 0 ? text.length : selection.start;
+    final end = selection.end < 0 ? text.length : selection.end;
+    final newText = text.replaceRange(start, end, '\n');
+    _controller.value = _controller.value.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: start + 1),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final enterKeyBehavior = ref.watch(
+      inboxPreferencesProvider.select((p) => p.enterKeyBehavior),
+    );
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -117,30 +174,55 @@ class _MessageComposerState extends State<MessageComposer> {
               onChanged: (value) => setState(() => _internalNote = value),
             ),
             const SizedBox(height: AppSpacing.xs),
-            if (_attachedFileName != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: InputChip(
-                  avatar: const Icon(Icons.attach_file, size: 14),
-                  label: Text(_attachedFileName!),
-                  onDeleted: () => setState(() => _attachedFileName = null),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: AppRadius.mdAll,
+                border: Border.all(
+                  color: _hasFocus ? colors.primary : colors.border,
+                  width: _hasFocus ? 1.5 : 1,
                 ),
               ),
-            TextField(
-              controller: _controller,
-              minLines: 2,
-              maxLines: 5,
-              style: const TextStyle(fontSize: 13),
-              textInputAction: TextInputAction.newline,
-              decoration: InputDecoration(
-                isDense: true,
-                filled: false,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                hintStyle: const TextStyle(fontSize: 13),
-                hintText: _internalNote
-                    ? 'Add an internal note — only your team can see this...'
-                    : 'Type a message or type "/" to use template...',
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_attachedFileName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: InputChip(
+                        avatar: const Icon(Icons.attach_file, size: 14),
+                        label: Text(_attachedFileName!),
+                        onDeleted: () =>
+                            setState(() => _attachedFileName = null),
+                      ),
+                    ),
+                  Focus(
+                    onKeyEvent: _handleKeyEvent,
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      minLines: 2,
+                      maxLines: 5,
+                      style: const TextStyle(fontSize: 13),
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: false,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintStyle: const TextStyle(fontSize: 13),
+                        hintText: _internalNote
+                            ? 'Add an internal note — only your team can see this...'
+                            : 'Type a message or type "/" to use template...',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -161,7 +243,27 @@ class _MessageComposerState extends State<MessageComposer> {
                   icon: const Icon(Icons.bolt_outlined, size: 18),
                   onPressed: null,
                 ),
-                const Spacer(),
+                Expanded(
+                  child: enterKeyBehavior == EnterKeyBehavior.send
+                      ? Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.sm,
+                            ),
+                            child: Text(
+                              'Enter to send • Shift+Enter for new line',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.caption.copyWith(
+                                color: colors.textMuted,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
                 // Icon-only: a subtle secondary action that doesn't visually
                 // compete with Send for width or attention.
                 const IconButton(

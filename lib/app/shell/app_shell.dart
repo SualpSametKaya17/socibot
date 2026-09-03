@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -535,13 +536,25 @@ class _SidebarFooter extends ConsumerWidget {
         position: PopupMenuPosition.over,
         onSelected: (value) {
           if (value == 'sign-out') signOut();
+          if (value == 'design-preview') context.go(RoutePaths.designPreview);
         },
         itemBuilder: (context) => [
           PopupMenuItem<String>(
             enabled: false,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+            child: Text(label, style: AppTypography.bodySmall),
           ),
           const PopupMenuDivider(),
+          if (kDebugMode) ...[
+            const PopupMenuItem<String>(
+              value: 'design-preview',
+              child: ListTile(
+                leading: Icon(Icons.palette_outlined),
+                title: Text('Design language (dev)'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuDivider(),
+          ],
           const PopupMenuItem<String>(
             value: 'sign-out',
             child: ListTile(
@@ -566,7 +579,7 @@ class _SidebarFooter extends ConsumerWidget {
                       child: Text(
                         label,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: AppTypography.bodySmall,
                       ),
                     ),
                     Icon(Icons.unfold_more, size: 16, color: colors.textMuted),

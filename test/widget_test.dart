@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:socibot/app/app.dart';
 import 'package:socibot/features/auth/domain/mock_auth_session.dart';
+import 'package:socibot/features/settings/domain/settings_preferences.dart';
 
 void main() {
   setUpAll(() async {
@@ -52,4 +53,24 @@ void main() {
     expect(find.text('Recent conversations'), findsOneWidget);
     expect(find.text('Sign in to your Socibot workspace'), findsNothing);
   });
+
+  testWidgets(
+    'Workspace theme preference (Dark) switches the app to dark mode',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            savedWorkspaceDraftProvider.overrideWith(
+              (ref) => const WorkspaceDraft(theme: ThemePreference.dark),
+            ),
+          ],
+          child: const SocibotApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      expect(Theme.of(context).brightness, Brightness.dark);
+    },
+  );
 }

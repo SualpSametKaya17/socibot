@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_semantic_colors.dart';
 import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_typography.dart';
 
 /// One "icon chip + value" row for a contact/customer detail panel —
 /// shared by the Contacts feature's [ContactDetailPane] and the Inbox's
@@ -46,8 +47,9 @@ class DetailFieldRow extends StatelessWidget {
             child: Text(
               label,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: colors.textPrimary),
+              style: AppTypography.bodySmall.copyWith(
+                color: colors.textPrimary,
+              ),
             ),
           ),
         ),

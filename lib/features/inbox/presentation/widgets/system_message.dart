@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
 
 /// A small, centered, muted activity line in the message thread (e.g.
 /// "Assigned to X") — visually distinct from a real chat message so it
@@ -29,8 +30,7 @@ class SystemMessage extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: Theme.of(context).textTheme.labelSmall
-              ?.copyWith(color: colors.textMuted),
+          style: AppTypography.caption.copyWith(color: colors.textMuted),
         ),
       ),
     );

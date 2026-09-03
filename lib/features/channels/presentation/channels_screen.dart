@@ -33,8 +33,9 @@ class ChannelsScreen extends ConsumerWidget {
             Text(
               'Instagram, Messenger, and WhatsApp Business connections for '
               'this organization.',
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: context.colors.textSecondary),
+              style: AppTypography.bodyMedium.copyWith(
+                color: context.colors.textSecondary,
+              ),
             ),
             const Gap(AppSpacing.xl),
             channelsAsync.when(

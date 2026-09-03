@@ -285,8 +285,9 @@ class _ComingSoonTab extends StatelessWidget {
         child: Text(
           'Coming in a later stage',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: context.colors.textMuted),
+          style: AppTypography.bodySmall.copyWith(
+            color: context.colors.textMuted,
+          ),
         ),
       ),
     );
@@ -339,8 +340,9 @@ class _ProfileCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               contact!.company!,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: colors.textSecondary),
+              style: AppTypography.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -353,8 +355,9 @@ class _ProfileCard extends StatelessWidget {
                 const SizedBox(width: 2),
                 Text(
                   contact!.location!,
-                  style: Theme.of(context).textTheme.labelSmall
-                      ?.copyWith(color: colors.textMuted),
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textMuted,
+                  ),
                 ),
               ],
             ),
@@ -410,12 +413,11 @@ class _DetailCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           section.title,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: colors.textMuted,
-                                letterSpacing: 0.4,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style: AppTypography.caption.copyWith(
+                            color: colors.textMuted,
+                            letterSpacing: 0.4,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                       ?section.trailing,
@@ -456,8 +458,7 @@ class _EmptySectionNote extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.bodySmall
-          ?.copyWith(color: context.colors.textMuted),
+      style: AppTypography.bodySmall.copyWith(color: context.colors.textMuted),
     );
   }
 }
@@ -510,14 +511,16 @@ class _AgentHandled extends StatelessWidget {
             children: [
               Text(
                 agentName!,
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: AppTypography.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               if (since != null)
                 Text(
                   '${DateFormat.MMMd().add_jm().format(since!)} – Now',
-                  style: Theme.of(context).textTheme.labelSmall
-                      ?.copyWith(color: colors.textMuted),
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textMuted,
+                  ),
                 ),
             ],
           ),
@@ -564,10 +567,9 @@ class _RoomDetails extends StatelessWidget {
         for (final row in rows) ...[
           Text(
             row.$1,
-            style: Theme.of(context).textTheme.labelSmall
-                ?.copyWith(color: colors.textMuted),
+            style: AppTypography.caption.copyWith(color: colors.textMuted),
           ),
-          Text(row.$2!, style: Theme.of(context).textTheme.bodySmall),
+          Text(row.$2!, style: AppTypography.bodySmall),
           if (row != rows.last) const SizedBox(height: AppSpacing.xs + 2),
         ],
       ],

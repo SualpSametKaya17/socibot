@@ -43,13 +43,14 @@ class DashboardScreen extends ConsumerWidget {
             organization.when(
               data: (org) => Text(
                 [?org?.name, ?email].join(' · '),
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: context.colors.textSecondary),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: context.colors.textSecondary,
+                ),
               ),
               loading: () => Skeletonizer(
                 child: Text(
                   'Loading organization name',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: AppTypography.bodyMedium,
                 ),
               ),
               error: (error, stackTrace) => Text(
@@ -332,10 +333,15 @@ class _RecentConversationsCard extends ConsumerWidget {
     final colors = context.colors;
 
     if (conversations.isEmpty) {
-      return const AppSurfaceCard(
+      return AppSurfaceCard(
         child: EmptyState(
           icon: Icons.forum_outlined,
           title: 'No conversations yet',
+          action: OutlinedButton.icon(
+            onPressed: () => context.go(RoutePaths.inbox),
+            icon: const Icon(Icons.forum_outlined, size: 16),
+            label: const Text('Go to Inbox'),
+          ),
         ),
       );
     }

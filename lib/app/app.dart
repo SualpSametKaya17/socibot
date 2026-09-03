@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/settings/domain/settings_preferences.dart';
 import 'router/app_router.dart';
 import 'theme/app_scroll_behavior.dart';
 import 'theme/app_theme.dart';
@@ -11,16 +12,23 @@ class SocibotApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final themePreference = ref.watch(savedWorkspaceDraftProvider).theme;
+    final themeMode = switch (themePreference) {
+      ThemePreference.system => ThemeMode.system,
+      ThemePreference.light => ThemeMode.light,
+      ThemePreference.dark => ThemeMode.dark,
+    };
 
     return MaterialApp.router(
       title: 'Socibot',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      // The product's visual identity is the light SaaS look; don't let a
-      // viewer's OS dark-mode setting silently switch it. Dark theme stays
-      // implemented for later, just not auto-triggered yet.
-      themeMode: ThemeMode.light,
+      // Driven by the Workspace settings page's Appearance control
+      // (savedWorkspaceDraftProvider.theme) — defaults to light, matching
+      // the product's visual identity, but a user can opt into dark or
+      // following the OS setting.
+      themeMode: themeMode,
       scrollBehavior: AppScrollBehavior(),
       routerConfig: router,
     );

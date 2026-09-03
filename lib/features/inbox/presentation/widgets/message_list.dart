@@ -9,6 +9,7 @@ import '../../../../core/widgets/message_bubble.dart';
 import '../../../conversations/domain/message.dart';
 import '../../../conversations/domain/message_direction.dart';
 import 'system_message.dart';
+import '../../../../app/theme/app_typography.dart';
 
 /// The scrollable thread, oldest to newest, with a subtle date separator
 /// whenever the day changes. Auto-scrolls to the newest message whenever
@@ -70,8 +71,9 @@ class _MessageListState extends State<MessageList> {
       return Center(
         child: Text(
           'No messages yet',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: context.colors.textMuted),
+          style: AppTypography.bodyMedium.copyWith(
+            color: context.colors.textMuted,
+          ),
         ),
       );
     }
@@ -184,8 +186,7 @@ class _DateSeparator extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Text(
               DateFormat.yMMMd().format(date),
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: colors.textMuted),
+              style: AppTypography.caption.copyWith(color: colors.textMuted),
             ),
           ),
           Expanded(child: Divider(color: colors.border)),

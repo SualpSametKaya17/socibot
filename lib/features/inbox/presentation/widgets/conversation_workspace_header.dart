@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation.dart';
+import '../../../../app/theme/app_typography.dart';
 
 /// Region 4's header bar: who this conversation is with, who it's
 /// assigned to, a Resolve action, and a search-within-conversation
@@ -154,8 +155,7 @@ class _AssignedToChip extends StatelessWidget {
           children: [
             Text(
               'Assigned to',
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: colors.textMuted),
+              style: AppTypography.caption.copyWith(color: colors.textMuted),
             ),
             const SizedBox(width: AppSpacing.xs),
             if (agentName != null) ...[
@@ -164,7 +164,7 @@ class _AssignedToChip extends StatelessWidget {
             ],
             Text(
               label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              style: AppTypography.caption.copyWith(
                 color: colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),

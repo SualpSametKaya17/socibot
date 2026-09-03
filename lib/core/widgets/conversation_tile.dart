@@ -5,6 +5,7 @@ import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_semantic_colors.dart';
 import '../../app/theme/app_spacing.dart';
 import 'app_avatar.dart';
+import '../../app/theme/app_typography.dart';
 
 /// One row in the inbox conversation list. Takes prebuilt badge widgets
 /// (rather than a domain [Conversation]) so it stays reusable without
@@ -201,8 +202,10 @@ class _UnreadCountPill extends StatelessWidget {
       ),
       child: Text(
         '$count',
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+        style: AppTypography.caption.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

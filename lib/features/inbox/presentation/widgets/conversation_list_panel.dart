@@ -42,10 +42,12 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
   bool _searching = false;
   int _visibleCount = _pageSize;
   Timer? _debounce;
+  final _searchController = TextEditingController();
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -54,6 +56,16 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
     _debounce = Timer(const Duration(milliseconds: 300), () {
       ref.read(inboxSearchQueryProvider.notifier).state = value;
     });
+  }
+
+  void _clearFilters() {
+    _debounce?.cancel();
+    _searchController.clear();
+    ref.read(inboxSearchQueryProvider.notifier).state = '';
+    ref.read(inboxQuickFilterProvider.notifier).state = InboxQuickFilter.all;
+    ref.read(inboxStatusFilterProvider.notifier).state = null;
+    ref.read(inboxChannelFilterProvider.notifier).state = null;
+    ref.read(inboxUnrepliedOnlyProvider.notifier).state = false;
   }
 
   @override
@@ -116,6 +128,7 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
               AppSpacing.sm,
             ),
             child: TextField(
+              controller: _searchController,
               autofocus: true,
               decoration: const InputDecoration(
                 hintText: 'Search conversations',
@@ -137,10 +150,14 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
           child: conversationsAsync.when(
             data: (conversations) {
               if (conversations.isEmpty) {
-                return const EmptyState(
+                return EmptyState(
                   icon: Icons.search_off,
                   title: 'No conversations found',
                   message: 'Try a different search term or filter.',
+                  action: OutlinedButton(
+                    onPressed: _clearFilters,
+                    child: const Text('Clear filters'),
+                  ),
                 );
               }
               final visible = conversations.take(_visibleCount).toList();

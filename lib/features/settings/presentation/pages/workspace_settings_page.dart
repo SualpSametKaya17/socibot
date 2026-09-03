@@ -157,8 +157,8 @@ class _WorkspaceSettingsPageState extends ConsumerState<WorkspaceSettingsPage> {
               ),
               const Gap(AppSpacing.xs + 2),
               Text(
-                "Theme switching isn't wired up yet — this saves your "
-                'preference for when it is.',
+                'Click Save Changes below to apply your theme, same as the '
+                'other preferences on this page.',
                 style: AppTypography.caption.copyWith(
                   color: colors.textMuted,
                   fontWeight: FontWeight.w400,

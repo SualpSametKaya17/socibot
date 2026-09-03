@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,6 +74,27 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 350));
 
       expect(find.text('No conversations found'), findsOneWidget);
+    });
+
+    testWidgets('Clear filters on the empty state restores the full list', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(400, 800));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'nobody matches this');
+      await tester.pumpAndSettle(const Duration(milliseconds: 350));
+
+      expect(find.text('No conversations found'), findsOneWidget);
+
+      await tester.tap(find.text('Clear filters'));
+      await tester.pumpAndSettle(const Duration(milliseconds: 350));
+
+      expect(find.text('No conversations found'), findsNothing);
+      expect(find.text('Elena Martinez'), findsOneWidget);
     });
 
     testWidgets('selecting a conversation pushes the workspace full-screen', (
@@ -275,6 +297,61 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Thanks for reaching out!'), findsOneWidget);
+    });
+
+    testWidgets('Enter sends the message (default enter-key behavior)', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+
+      final composerField = find.widgetWithText(
+        TextField,
+        'Type a message or type "/" to use template...',
+      );
+      await tester.tap(composerField);
+      await tester.enterText(composerField, 'Sent via Enter');
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sent via Enter'), findsOneWidget);
+      expect(tester.widget<TextField>(composerField).controller!.text, isEmpty);
+    });
+
+    testWidgets('Shift+Enter inserts a newline instead of sending', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+
+      final composerField = find.widgetWithText(
+        TextField,
+        'Type a message or type "/" to use template...',
+      );
+      await tester.tap(composerField);
+      await tester.enterText(composerField, 'Line one');
+      await tester.pump();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pump();
+
+      // Not sent — the text (now with a newline) is still in the field.
+      final controllerText = tester
+          .widget<TextField>(composerField)
+          .controller!
+          .text;
+      expect(controllerText, contains('Line one'));
+      expect(controllerText, contains('\n'));
     });
 
     testWidgets('customer detail panel shows the selected contact', (
