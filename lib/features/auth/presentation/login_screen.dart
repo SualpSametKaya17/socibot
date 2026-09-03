@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import '../../../core/constants/route_paths.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_password_field.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../domain/mock_auth_session.dart';
 import 'login_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -161,6 +163,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : () => context.go(RoutePaths.register),
                       child: const Text("Don't have an account? Sign up"),
                     ),
+                    if (kDebugMode) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: colors.warning.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.mdAll,
+                          border: Border.all(
+                            color: colors.warning.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Text(
+                          'Debug build — no Supabase project needed. Sign '
+                          'in with $mockDemoEmail / $mockDemoPassword.',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.caption.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

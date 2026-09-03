@@ -9,6 +9,7 @@ import '../../core/widgets/app_sidebar.dart';
 import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/auth/domain/auth_providers.dart';
+import '../../features/auth/domain/mock_auth_session.dart';
 import '../../features/conversations/domain/conversation_providers.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_semantic_colors.dart';
@@ -510,6 +511,12 @@ class _SidebarFooter extends ConsumerWidget {
     final label = user?.email ?? 'Account';
 
     Future<void> signOut() async {
+      // Signed in via the temporary demo-credentials shortcut — there's no
+      // real Supabase session to tear down, just clear the local flag.
+      if (mockAuthActive.value) {
+        mockAuthActive.value = false;
+        return;
+      }
       final messenger = ScaffoldMessenger.of(context);
       try {
         await ref.read(authRepositoryProvider).signOut();

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/env_config.dart';
 import '../../core/constants/route_paths.dart';
 import '../../core/services/supabase/supabase_providers.dart';
+import '../../features/auth/domain/mock_auth_session.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/channels/presentation/channels_screen.dart';
@@ -30,17 +31,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     client.auth.onAuthStateChange,
   );
   ref.onDispose(refreshListenable.dispose);
+  // mockAuthActive is a plain ValueNotifier (itself a Listenable), so
+  // merging it in re-evaluates `redirect` when the demo-credentials
+  // sign-in toggles it, just like a real Supabase auth-state change would.
+  final combinedRefresh = Listenable.merge([refreshListenable, mockAuthActive]);
 
   return GoRouter(
     initialLocation: RoutePaths.splash,
     debugLogDiagnostics: true,
-    refreshListenable: refreshListenable,
+    refreshListenable: combinedRefresh,
     redirect: (context, state) {
-      // kDebugMode-gated dev bypass for reviewing the shell UI locally
-      // without a real Supabase session — see EnvConfig.skipAuthForDev.
+      // kDebugMode-gated dev bypasses for reviewing the shell UI locally
+      // without a real Supabase session — see EnvConfig.skipAuthForDev
+      // and mockAuthActive's doc comment.
       final isLoggedIn =
           client.auth.currentSession != null ||
-          (kDebugMode && EnvConfig.skipAuthForDev);
+          (kDebugMode && EnvConfig.skipAuthForDev) ||
+          (kDebugMode && mockAuthActive.value);
       final location = state.matchedLocation;
       final isAuthRoute =
           location == RoutePaths.login || location == RoutePaths.register;
