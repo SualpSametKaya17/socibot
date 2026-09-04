@@ -12,19 +12,21 @@ import 'widgets/customer_detail_panel.dart';
 /// fifth, the app's own main application sidebar, is [AppShell] —
 /// outside this feature's scope):
 ///
-/// wide desktop (>=1350px total app width): [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel]
-/// small/medium desktop (900-1349px): [ConversationListPanel] | [ConversationWorkspace] (channel rail collapses, customer detail moves into a drawer — see [_wideDesktopWidth]/[AppBreakpoints.smallDesktop])
+/// desktop (>=900px total app width): [ChannelRail] | [ConversationListPanel] | [ConversationWorkspace] | [CustomerDetailPanel] once there's room (>=[AppBreakpoints.smallDesktop]), otherwise customer detail moves into a drawer
 /// tablet: [ConversationListPanel] | [ConversationWorkspace] (customer detail in a drawer)
 /// mobile: [ConversationListPanel] only; selecting a conversation pushes
 /// [ConversationWorkspace] full-screen (customer detail in a drawer there too).
+///
+/// [ChannelRail] (a slim 52px icon strip) stays visible across the whole
+/// desktop band rather than collapsing at some narrower width — unlike
+/// [CustomerDetailPanel], it has no drawer fallback, so hiding it would
+/// make channel filtering unreachable, not just less convenient.
 ///
 /// At every width, customer details stay reachable — either permanently
 /// on screen or one tap away via [ConversationWorkspaceHeader]'s info
 /// button — never silently dropped just because the panel didn't fit.
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
-
-  static const _wideDesktopWidth = 1350.0;
 
   @override
   Widget build(BuildContext context) {
@@ -67,14 +69,11 @@ class InboxScreen extends StatelessWidget {
         // Total application width, not this screen's local share of it —
         // consistent with how [ResponsiveLayout] itself decides.
         final totalWidth = MediaQuery.sizeOf(context).width;
-        final isWide = totalWidth >= _wideDesktopWidth;
         final showCustomerPanel = totalWidth >= AppBreakpoints.smallDesktop;
 
         final listAndWorkspace = <Widget>[
-          if (isWide) ...[
-            const SizedBox(width: 52, child: ChannelRail()),
-            const _VerticalBorder(),
-          ],
+          const SizedBox(width: 52, child: ChannelRail()),
+          const _VerticalBorder(),
           const SizedBox(width: 310, child: ConversationListPanel()),
           const _VerticalBorder(),
         ];
