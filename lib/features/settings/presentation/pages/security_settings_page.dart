@@ -37,6 +37,8 @@ class SecuritySettingsPage extends ConsumerWidget {
                   children: [
                     Text(
                       email,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                       style: AppTypography.bodySmall.copyWith(
                         color: colors.textSecondary,
                       ),

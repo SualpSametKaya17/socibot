@@ -168,6 +168,8 @@ class TeamMemberMobileRow extends StatelessWidget {
                 if (member.email != null)
                   Text(
                     member.email!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: AppTypography.caption.copyWith(
                       color: colors.textMuted,
                       fontWeight: FontWeight.w400,

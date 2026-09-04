@@ -162,37 +162,46 @@ class _AssignedToChip extends ConsumerWidget {
             child: Text(member.displayName),
           ),
       ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: 6,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: colors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Assigned to',
-              style: AppTypography.caption.copyWith(color: colors.textMuted),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            if (agentName != null) ...[
-              AppAvatar(name: agentName!, radius: 10),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w600,
+      child: ConstrainedBox(
+        // A long real member name (unlike the short mock names) could
+        // otherwise grow this chip unbounded and push the header's Row
+        // into overflow — cap it and ellipsize the name instead.
+        constraints: const BoxConstraints(maxWidth: 160),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Assigned to',
+                style: AppTypography.caption.copyWith(color: colors.textMuted),
               ),
-            ),
-            const SizedBox(width: 2),
-            Icon(Icons.expand_more, size: 14, color: colors.textMuted),
-          ],
+              const SizedBox(width: AppSpacing.xs),
+              if (agentName != null) ...[
+                AppAvatar(name: agentName!, radius: 10),
+                const SizedBox(width: 4),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(Icons.expand_more, size: 14, color: colors.textMuted),
+            ],
+          ),
         ),
       ),
     );
