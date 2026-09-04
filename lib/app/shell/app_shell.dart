@@ -7,6 +7,7 @@ import '../../core/constants/route_paths.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/widgets/app_avatar.dart';
 import '../../core/widgets/app_sidebar.dart';
+import '../../core/widgets/app_toast.dart';
 import '../../core/widgets/app_top_bar.dart';
 import '../../core/widgets/responsive_layout.dart';
 import '../../features/auth/domain/auth_providers.dart';
@@ -518,13 +519,16 @@ class _SidebarFooter extends ConsumerWidget {
         mockAuthActive.value = false;
         return;
       }
-      final messenger = ScaffoldMessenger.of(context);
       try {
         await ref.read(authRepositoryProvider).signOut();
       } on AppException catch (e) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(e.message)));
+        if (context.mounted) {
+          AppToast.show(
+            context,
+            message: e.message,
+            variant: ToastVariant.error,
+          );
+        }
       }
     }
 

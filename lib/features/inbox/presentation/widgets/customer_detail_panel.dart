@@ -172,51 +172,55 @@ class _CustomerDetailContent extends ConsumerWidget {
         _DetailTabs(selected: tabIndex, onSelected: onTabSelected),
         const Divider(height: 1),
         Expanded(
-          child: tabIndex != 0
-              ? const _ComingSoonTab()
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _ProfileCard(
-                        contact: contact,
-                        fallbackName: conversation.contactName,
-                        fallbackAvatarUrl: conversation.contactAvatarUrl,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _DetailCard(
-                        sections: [
-                          _Section(
-                            title: 'Contact Information',
-                            child: _ContactInformation(contact: contact),
-                          ),
-                          _Section(
-                            title: 'Agent Handled',
-                            child: _AgentHandled(
-                              agentName: conversation.assignedAgentName,
-                              since: conversation.createdAt,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 140),
+            child: tabIndex != 0
+                ? const _ComingSoonTab(key: ValueKey('coming-soon'))
+                : SingleChildScrollView(
+                    key: const ValueKey('detail'),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ProfileCard(
+                          contact: contact,
+                          fallbackName: conversation.contactName,
+                          fallbackAvatarUrl: conversation.contactAvatarUrl,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        _DetailCard(
+                          sections: [
+                            _Section(
+                              title: 'Contact Information',
+                              child: _ContactInformation(contact: contact),
                             ),
-                          ),
-                          const _Section(
-                            title: 'Tags',
-                            trailing: _DisabledAddIcon(
-                              tooltip: 'Tagging is coming in a later stage',
+                            _Section(
+                              title: 'Agent Handled',
+                              child: _AgentHandled(
+                                agentName: conversation.assignedAgentName,
+                                since: conversation.createdAt,
+                              ),
                             ),
-                            child: _EmptySectionNote(text: 'No tags yet'),
-                          ),
-                          _Section(
-                            title: 'Conversation room details',
-                            child: _RoomDetails(
-                              conversation: conversation,
-                              channelAccount: channelAccount,
+                            const _Section(
+                              title: 'Tags',
+                              trailing: _DisabledAddIcon(
+                                tooltip: 'Tagging is coming in a later stage',
+                              ),
+                              child: _EmptySectionNote(text: 'No tags yet'),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            _Section(
+                              title: 'Conversation room details',
+                              child: _RoomDetails(
+                                conversation: conversation,
+                                channelAccount: channelAccount,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+          ),
         ),
       ],
     );
@@ -275,7 +279,7 @@ class _DetailTabs extends StatelessWidget {
 }
 
 class _ComingSoonTab extends StatelessWidget {
-  const _ComingSoonTab();
+  const _ComingSoonTab({super.key});
 
   @override
   Widget build(BuildContext context) {

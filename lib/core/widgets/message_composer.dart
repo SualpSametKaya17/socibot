@@ -9,6 +9,7 @@ import '../../app/theme/app_semantic_colors.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_typography.dart';
 import '../../features/settings/domain/settings_preferences.dart';
+import 'text_entry_shortcut_guard.dart';
 
 /// A CRM-style composer anchored at the bottom of the conversation
 /// workspace: a utility row (attachment/emoji/saved-reply/AI-assist),
@@ -201,24 +202,32 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
                             setState(() => _attachedFileName = null),
                       ),
                     ),
-                  Focus(
-                    onKeyEvent: _handleKeyEvent,
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      minLines: 2,
-                      maxLines: 5,
-                      style: const TextStyle(fontSize: 13),
-                      textInputAction: TextInputAction.newline,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: false,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        hintStyle: const TextStyle(fontSize: 13),
-                        hintText: _internalNote
-                            ? 'Add an internal note — only your team can see this...'
-                            : 'Type a message or type "/" to use template...',
+                  TextEntryShortcutGuard(
+                    keys: const [
+                      SingleActivator(LogicalKeyboardKey.keyJ),
+                      SingleActivator(LogicalKeyboardKey.keyK),
+                      SingleActivator(LogicalKeyboardKey.keyE),
+                      SingleActivator(LogicalKeyboardKey.slash, shift: true),
+                    ],
+                    child: Focus(
+                      onKeyEvent: _handleKeyEvent,
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        minLines: 2,
+                        maxLines: 5,
+                        style: const TextStyle(fontSize: 13),
+                        textInputAction: TextInputAction.newline,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: false,
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          hintStyle: const TextStyle(fontSize: 13),
+                          hintText: _internalNote
+                              ? 'Add an internal note — only your team can see this...'
+                              : 'Type a message or type "/" to use template...',
+                        ),
                       ),
                     ),
                   ),

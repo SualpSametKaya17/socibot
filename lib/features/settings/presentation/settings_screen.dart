@@ -60,7 +60,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: _selected.label,
             onBack: () => setState(() => _mobileSectionOpen = false),
           ),
-          Expanded(child: _pageFor(_selected)),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 140),
+              child: KeyedSubtree(
+                key: ValueKey(_selected),
+                child: _pageFor(_selected),
+              ),
+            ),
+          ),
         ],
       );
     }

@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/core/widgets/conversation_tile.dart';
+import 'package:socibot/features/conversations/domain/conversation_providers.dart';
+import 'package:socibot/features/conversations/domain/conversation_status.dart';
 import 'package:socibot/features/inbox/presentation/inbox_screen.dart';
 import 'package:socibot/features/inbox/presentation/widgets/channel_rail.dart';
 
@@ -131,6 +133,12 @@ void main() {
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
+      // The header's real Assign chip watches organizationMembersProvider,
+      // a sequential Future.delayed chain (currentOrganizationProvider's
+      // own fetch, then fetchMembers) — nothing animates while it's
+      // pending, so pumpAndSettle can return before it resolves. One more
+      // pump past the combined ~800ms delay flushes it.
+      await tester.pump(const Duration(milliseconds: 900));
 
       expect(find.text('Select a conversation'), findsNothing);
       // Contact name now appears three times: the list tile, the
@@ -275,6 +283,9 @@ void main() {
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
+      // See the "shows the channel rail..." test's comment — flushes the
+      // header's organizationMembersProvider chain.
+      await tester.pump(const Duration(milliseconds: 900));
 
       final sendButtonFinder = find.widgetWithIcon(
         IconButton,
@@ -307,6 +318,9 @@ void main() {
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
+      // See the "shows the channel rail..." test's comment — flushes the
+      // header's organizationMembersProvider chain.
+      await tester.pump(const Duration(milliseconds: 900));
 
       final composerField = find.widgetWithText(
         TextField,
@@ -331,6 +345,9 @@ void main() {
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
+      // See the "shows the channel rail..." test's comment — flushes the
+      // header's organizationMembersProvider chain.
+      await tester.pump(const Duration(milliseconds: 900));
 
       final composerField = find.widgetWithText(
         TextField,
@@ -364,10 +381,135 @@ void main() {
 
       await tester.tap(find.text('Elena Martinez'));
       await tester.pumpAndSettle();
+      // See the "shows the channel rail..." test's comment — flushes the
+      // header's organizationMembersProvider chain.
+      await tester.pump(const Duration(milliseconds: 900));
 
       expect(find.text('Contact Information'), findsOneWidget);
       expect(find.text('elena.martinez@example.com'), findsOneWidget);
       expect(find.text('Conversation room details'), findsOneWidget);
+    });
+
+    testWidgets('Resolving a conversation updates its status and toasts', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 900));
+
+      await tester.tap(find.byTooltip('Resolve (E)'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<ConversationStatus> &&
+              widget.value == ConversationStatus.resolved,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Conversation resolved'), findsOneWidget);
+      // The header now offers "Reopen" instead.
+      expect(find.byTooltip('Reopen (E)'), findsOneWidget);
+    });
+
+    testWidgets('Assigning a conversation via the header toasts and updates', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 900));
+
+      await tester.tap(find.byTooltip('Assign'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<String?> && widget.value == 'Sofia Reyes',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // "Assigned to Sofia Reyes" now shows in more than one honest place
+      // at once (the toast, the list tile, the thread's system message) —
+      // assert at least the toast + one other surface rather than pinning
+      // an exact count that depends on incidental UI elsewhere.
+      expect(find.text('Assigned to Sofia Reyes'), findsAtLeastNWidgets(2));
+    });
+
+    testWidgets(
+      'J/K move the selection through the visible conversation list',
+      (tester) async {
+        await pumpInbox(tester, size: const Size(1400, 900));
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(InboxScreen)),
+        );
+        expect(container.read(selectedConversationIdProvider), isNull);
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+        await tester.pump();
+        final firstId = container.read(selectedConversationIdProvider);
+        expect(firstId, isNotNull);
+        // Selecting a conversation renders the header's real Assign chip,
+        // which watches organizationMembersProvider — see the "shows the
+        // channel rail..." test's comment for why this needs an explicit
+        // flush before the widget tree is torn down at test end.
+        await tester.pump(const Duration(milliseconds: 900));
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+        await tester.pumpAndSettle();
+        final secondId = container.read(selectedConversationIdProvider);
+        expect(secondId, isNotNull);
+        expect(secondId, isNot(firstId));
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
+        await tester.pumpAndSettle();
+        expect(container.read(selectedConversationIdProvider), firstId);
+      },
+    );
+
+    testWidgets('Typing "j" in the search field does not trigger navigation', (
+      tester,
+    ) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(InboxScreen)),
+      );
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TextField));
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+      await tester.pump();
+
+      // The shortcut never fired — the keystroke stayed inside the field.
+      expect(container.read(selectedConversationIdProvider), isNull);
+    });
+
+    testWidgets('E resolves the open conversation', (tester) async {
+      await pumpInbox(tester, size: const Size(1400, 900));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Elena Martinez'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 900));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyE);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Conversation resolved'), findsOneWidget);
+      expect(find.byTooltip('Reopen (E)'), findsOneWidget);
     });
   });
 }

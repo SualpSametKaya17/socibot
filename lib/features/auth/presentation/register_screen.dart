@@ -10,6 +10,7 @@ import '../../../core/constants/route_paths.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_password_field.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/app_toast.dart';
 import 'register_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -53,21 +54,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           final message = error is AppException
               ? error.message
               : error.toString();
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(message)));
+          AppToast.show(context, message: message, variant: ToastVariant.error);
         },
         data: (result) {
           if (result != null && !result.signedIn) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Account created. Check your email to confirm before signing in.',
-                  ),
-                ),
-              );
+            AppToast.show(
+              context,
+              message: 'Account created. Check your email to confirm before signing in.',
+              variant: ToastVariant.info,
+            );
           }
           // When result.signedIn is true, the router's auth guard handles
           // navigation automatically once the session appears.

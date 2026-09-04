@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/channel_badge.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../conversations/domain/conversation.dart';
-import '../../../../app/theme/app_typography.dart';
+import '../../../conversations/domain/conversation_actions.dart';
+import '../../../conversations/domain/conversation_status.dart';
+import '../../../organization/domain/organization_providers.dart';
 
 /// Region 4's header bar: who this conversation is with, who it's
-/// assigned to, a Resolve action, and a search-within-conversation
-/// toggle. Assign/Resolve are intentionally rendered disabled —
-/// conversation assignment/status mutation is a later stage (AŞAMA 14),
-/// not faked here.
+/// assigned to, a Resolve/Reopen action, and a search-within-conversation
+/// toggle. Assign and Resolve are real, immediate local mutations (see
+/// conversation_actions.dart) — mock/session-only, same as everywhere
+/// else in this app, but genuinely working rather than disabled.
 class ConversationWorkspaceHeader extends StatelessWidget {
   const ConversationWorkspaceHeader({
     super.key,
@@ -95,9 +99,15 @@ class ConversationWorkspaceHeader extends StatelessWidget {
             ),
           ),
           if (roomy) ...[
-            _AssignedToChip(agentName: conversation.assignedAgentName),
+            _AssignedToChip(
+              conversationId: conversation.id,
+              agentName: conversation.assignedAgentName,
+            ),
             const SizedBox(width: AppSpacing.sm),
-            const _ResolveButton(),
+            _ResolveButton(
+              conversationId: conversation.id,
+              status: conversation.status,
+            ),
             const SizedBox(width: AppSpacing.xs),
           ],
           if (onOpenDetails != null)
@@ -112,12 +122,7 @@ class ConversationWorkspaceHeader extends StatelessWidget {
             icon: const Icon(Icons.search, size: 18),
             onPressed: onToggleSearch,
           ),
-          if (roomy)
-            const IconButton(
-              tooltip: 'More (coming in a later stage)',
-              icon: Icon(Icons.more_vert, size: 18),
-              onPressed: null,
-            ),
+          if (roomy) _MoreMenu(conversationId: conversation.id),
           IconButton(
             tooltip: 'Close',
             icon: const Icon(Icons.close, size: 18),
@@ -129,18 +134,34 @@ class ConversationWorkspaceHeader extends StatelessWidget {
   }
 }
 
-class _AssignedToChip extends StatelessWidget {
-  const _AssignedToChip({required this.agentName});
+class _AssignedToChip extends ConsumerWidget {
+  const _AssignedToChip({
+    required this.conversationId,
+    required this.agentName,
+  });
 
+  final String conversationId;
   final String? agentName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final label = agentName ?? 'Unassigned';
+    final members =
+        ref.watch(organizationMembersProvider).valueOrNull ?? const [];
 
-    return Tooltip(
-      message: 'Reassigning is coming in a later stage',
+    return PopupMenuButton<String?>(
+      tooltip: 'Assign',
+      onSelected: (value) =>
+          assignConversation(ref, context, conversationId, value),
+      itemBuilder: (context) => [
+        const PopupMenuItem<String?>(value: null, child: Text('Unassigned')),
+        for (final member in members)
+          PopupMenuItem<String?>(
+            value: member.displayName,
+            child: Text(member.displayName),
+          ),
+      ],
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
@@ -178,42 +199,87 @@ class _AssignedToChip extends StatelessWidget {
   }
 }
 
-class _ResolveButton extends StatelessWidget {
-  const _ResolveButton();
+class _ResolveButton extends ConsumerWidget {
+  const _ResolveButton({required this.conversationId, required this.status});
+
+  final String conversationId;
+  final ConversationStatus status;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
+    final isResolved = status == ConversationStatus.resolved;
+    final label = isResolved ? 'Reopen' : 'Resolve';
 
-    return Tooltip(
-      message: 'Changing status here is coming in a later stage',
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.textMuted.withValues(alpha: 0.3),
-          borderRadius: AppRadius.mdAll,
+    return PopupMenuButton<ConversationStatus>(
+      tooltip: '$label (E)',
+      onSelected: (value) => value == ConversationStatus.resolved
+          ? resolveConversation(ref, context, conversationId)
+          : reopenConversation(ref, context, conversationId),
+      itemBuilder: (context) => [
+        if (isResolved)
+          const PopupMenuItem(
+            value: ConversationStatus.open,
+            child: Text('Reopen'),
+          )
+        else
+          const PopupMenuItem(
+            value: ConversationStatus.resolved,
+            child: Text('Resolve'),
+          ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: 6,
         ),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm + 2,
-            vertical: 8,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Resolve',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isResolved ? Icons.replay : Icons.check_circle_outline,
+              size: 14,
+              color: isResolved ? colors.textSecondary : colors.success,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: AppTypography.caption.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
-              SizedBox(width: 2),
-              Icon(Icons.expand_more, size: 16, color: Colors.white),
-            ],
-          ),
+            ),
+            const SizedBox(width: 2),
+            Icon(Icons.expand_more, size: 14, color: colors.textMuted),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _MoreMenu extends ConsumerWidget {
+  const _MoreMenu({required this.conversationId});
+
+  final String conversationId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      tooltip: 'More',
+      icon: const Icon(Icons.more_vert, size: 18),
+      onSelected: (value) {
+        if (value == 'mark-unread') {
+          markConversationUnread(ref, context, conversationId);
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: 'mark-unread', child: Text('Mark as unread')),
+      ],
     );
   }
 }

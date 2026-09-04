@@ -12,9 +12,52 @@ final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
   return MockConversationRepository();
 });
 
-final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
-  return ref.watch(conversationRepositoryProvider).fetchConversations();
-});
+/// Loads the mock conversations, then lets Inbox actions (resolve/reopen,
+/// assign, mark unread) mutate them locally — same reasoning and pattern
+/// as `ChannelsNotifier` (lib/features/channels/domain/channel_providers.dart):
+/// real, immediate local state changes, no backend round-trip, since
+/// there's no `conversations` write endpoint yet. Call through
+/// lib/features/conversations/domain/conversation_actions.dart rather than
+/// this directly from UI, so every entry point (buttons today, keyboard
+/// shortcuts/command palette/context menu later) shares one code path.
+class ConversationsController extends AsyncNotifier<List<Conversation>> {
+  @override
+  Future<List<Conversation>> build() {
+    return ref.watch(conversationRepositoryProvider).fetchConversations();
+  }
+
+  void setStatus(String conversationId, ConversationStatus status) {
+    _update(conversationId, (c) => c.copyWith(status: status));
+  }
+
+  void setAssignee(String conversationId, String? agentName) {
+    _update(conversationId, (c) => c.copyWith(assignedAgentName: agentName));
+  }
+
+  void markUnread(String conversationId) {
+    _update(conversationId, (c) => c.copyWith(unreadCount: 1));
+  }
+
+  void _update(
+    String conversationId,
+    Conversation Function(Conversation) transform,
+  ) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData([
+      for (final conversation in current)
+        if (conversation.id == conversationId)
+          transform(conversation)
+        else
+          conversation,
+    ]);
+  }
+}
+
+final conversationsProvider =
+    AsyncNotifierProvider<ConversationsController, List<Conversation>>(
+      ConversationsController.new,
+    );
 
 /// Sum of every conversation's real `unreadCount` — badges the shell's
 /// Inbox nav destination. 0 while loading/erroring rather than showing a

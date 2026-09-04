@@ -41,7 +41,6 @@ class ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final colors = context.colors;
     final isUnread = unreadCount > 0;
 
@@ -49,7 +48,7 @@ class ConversationTile extends StatelessWidget {
     // flat rectangle — not a rounded, boxed card. Rows in a list don't
     // get corners; only the hover ripple stays (subtly) rounded.
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
+      duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
         color: selected ? colors.primarySoft : Colors.transparent,
@@ -85,31 +84,37 @@ class ConversationTile extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  contactName,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 150),
+                                  style: AppTypography.bodySmall.copyWith(
                                     fontSize: 13,
                                     fontWeight: isUnread
                                         ? FontWeight.w700
                                         : FontWeight.w600,
                                     color: colors.textPrimary,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
+                                  child: Text(
+                                    contactName,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
                               if (lastMessageAt != null)
-                                Text(
-                                  timeago.format(
-                                    lastMessageAt!,
-                                    locale: 'en_short',
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
+                                AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 150),
+                                  style: AppTypography.bodySmall.copyWith(
                                     color: isUnread
                                         ? colors.primary
                                         : colors.textMuted,
                                     fontWeight: isUnread
                                         ? FontWeight.w600
                                         : FontWeight.w400,
+                                  ),
+                                  child: Text(
+                                    timeago.format(
+                                      lastMessageAt!,
+                                      locale: 'en_short',
+                                    ),
                                   ),
                                 ),
                             ],
@@ -127,16 +132,19 @@ class ConversationTile extends StatelessWidget {
                             Row(
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    lastMessagePreview!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                  child: AnimatedDefaultTextStyle(
+                                    duration: const Duration(milliseconds: 150),
+                                    style: AppTypography.bodySmall.copyWith(
                                       fontSize: 12,
                                       color: colors.textSecondary,
                                       fontWeight: isUnread
                                           ? FontWeight.w600
                                           : FontWeight.w400,
+                                    ),
+                                    child: Text(
+                                      lastMessagePreview!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ),
@@ -153,8 +161,9 @@ class ConversationTile extends StatelessWidget {
                               'Assigned to $assignedAgentName',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
+                              style: AppTypography.caption.copyWith(
                                 color: colors.textMuted,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ],

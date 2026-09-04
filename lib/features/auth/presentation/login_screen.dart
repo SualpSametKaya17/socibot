@@ -11,6 +11,7 @@ import '../../../core/constants/route_paths.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_password_field.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/app_toast.dart';
 import '../domain/mock_auth_session.dart';
 import 'login_controller.dart';
 
@@ -53,9 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           final message = error is AppException
               ? error.message
               : error.toString();
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(message)));
+          AppToast.show(context, message: message, variant: ToastVariant.error);
         },
       );
     });

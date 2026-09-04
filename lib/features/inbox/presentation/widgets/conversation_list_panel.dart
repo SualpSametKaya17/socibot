@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -16,9 +17,11 @@ import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
 import '../../../../core/widgets/load_more_row.dart';
 import '../../../../core/widgets/status_badge.dart';
+import '../../../../core/widgets/text_entry_shortcut_guard.dart';
 import '../../../conversations/domain/conversation_providers.dart';
 import '../../../conversations/domain/conversation_status.dart';
 import '../../domain/inbox_quick_filter.dart';
+import '../../domain/inbox_shortcuts.dart';
 
 /// Region 3 of the Inbox layout: the conversation list — header (channel
 /// name + search), status tabs, an ownership dropdown, the rows
@@ -111,6 +114,11 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                 ),
               ),
               IconButton(
+                tooltip: 'Keyboard shortcuts (?)',
+                icon: const Icon(Icons.keyboard_outlined, size: 18),
+                onPressed: () => showKeyboardShortcutsDialog(context),
+              ),
+              IconButton(
                 tooltip: 'Search conversations',
                 isSelected: _searching,
                 icon: const Icon(Icons.search, size: 20),
@@ -127,19 +135,27 @@ class _ConversationListPanelState extends ConsumerState<ConversationListPanel> {
               AppSpacing.md,
               AppSpacing.sm,
             ),
-            child: TextField(
-              controller: _searchController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Search conversations',
-                prefixIcon: Icon(Icons.search, size: 18),
-                isDense: true,
+            child: TextEntryShortcutGuard(
+              keys: const [
+                SingleActivator(LogicalKeyboardKey.keyJ),
+                SingleActivator(LogicalKeyboardKey.keyK),
+                SingleActivator(LogicalKeyboardKey.keyE),
+                SingleActivator(LogicalKeyboardKey.slash, shift: true),
+              ],
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Search conversations',
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  isDense: true,
+                ),
+                // Debounced — typing itself is never delayed (this is the
+                // field's own local text), only when the list actually
+                // re-filters, so a fast typist doesn't re-run the filter
+                // on every keystroke.
+                onChanged: _onSearchChanged,
               ),
-              // Debounced — typing itself is never delayed (this is the
-              // field's own local text), only when the list actually
-              // re-filters, so a fast typist doesn't re-run the filter on
-              // every keystroke.
-              onChanged: _onSearchChanged,
             ),
           ),
         const _StatusTabsRow(key: Key('inbox-status-tabs')),

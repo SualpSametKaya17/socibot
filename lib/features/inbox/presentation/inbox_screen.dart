@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/theme/app_breakpoints.dart';
 import '../../../app/theme/app_semantic_colors.dart';
 import '../../../core/widgets/responsive_layout.dart';
+import '../domain/inbox_shortcuts.dart';
 import 'widgets/channel_rail.dart';
 import 'widgets/conversation_list_panel.dart';
 import 'widgets/conversation_workspace.dart';
@@ -30,6 +31,10 @@ class InboxScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return InboxShortcuts(child: _buildLayout());
+  }
+
+  Widget _buildLayout() {
     return ResponsiveLayout(
       mobile: (context) => ConversationListPanel(
         onSelect: (_) => Navigator.of(context).push(

@@ -129,8 +129,13 @@ class AppTheme {
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+          shape: WidgetStateProperty.resolveWith(
+            (states) => RoundedRectangleBorder(
+              borderRadius: AppRadius.mdAll,
+              side: states.contains(WidgetState.focused)
+                  ? BorderSide(color: colors.primaryHover, width: 2)
+                  : BorderSide.none,
+            ),
           ),
           textStyle: WidgetStatePropertyAll(AppTypography.labelLarge),
           foregroundColor: WidgetStatePropertyAll(onAccent),
@@ -169,7 +174,11 @@ class AppTheme {
             }
             return colors.surface;
           }),
-          side: WidgetStatePropertyAll(BorderSide(color: colors.border)),
+          side: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.focused)
+                ? BorderSide(color: colors.primary, width: 2)
+                : BorderSide(color: colors.border),
+          ),
         ),
       ),
 
@@ -182,8 +191,13 @@ class AppTheme {
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: AppSpacing.md),
           ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+          shape: WidgetStateProperty.resolveWith(
+            (states) => RoundedRectangleBorder(
+              borderRadius: AppRadius.mdAll,
+              side: states.contains(WidgetState.focused)
+                  ? BorderSide(color: colors.primary, width: 2)
+                  : BorderSide.none,
+            ),
           ),
           textStyle: WidgetStatePropertyAll(AppTypography.labelLarge),
           foregroundColor: WidgetStatePropertyAll(colors.primary),
@@ -203,8 +217,13 @@ class AppTheme {
           padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
           minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+          shape: WidgetStateProperty.resolveWith(
+            (states) => RoundedRectangleBorder(
+              borderRadius: AppRadius.mdAll,
+              side: states.contains(WidgetState.focused)
+                  ? BorderSide(color: colors.primary, width: 2)
+                  : BorderSide.none,
+            ),
           ),
         ),
       ),
