@@ -185,11 +185,18 @@ class _ToastCardState extends State<_ToastCard> {
       ToastVariant.info => (Icons.info_outline, colors.primary),
     };
 
+    // Fixed 260-360px regardless of screen size would overflow off the
+    // left edge on a narrow phone (the stack is only right/top-anchored)
+    // — cap against the actual available width instead.
+    final maxAvailable = MediaQuery.sizeOf(context).width - AppSpacing.lg * 2;
+    final maxWidth = maxAvailable.clamp(200.0, 360.0);
+    final minWidth = maxAvailable < 260 ? 0.0 : 260.0;
+
     return MouseRegion(
       onEnter: (_) => _pauseTimer(),
       onExit: (_) => _startTimer(),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 260, maxWidth: 360),
+        constraints: BoxConstraints(minWidth: minWidth, maxWidth: maxWidth),
         child: Material(
           color: colors.surface,
           borderRadius: AppRadius.mdAll,

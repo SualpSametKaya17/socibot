@@ -178,12 +178,14 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
             AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: AppRadius.mdAll,
-                border: Border.all(
-                  color: _hasFocus ? colors.primary : colors.border,
-                  width: _hasFocus ? 1.5 : 1,
-                ),
+                // Muted, not the same white/surface tone message bubbles
+                // use — reads as an input field, not another bubble
+                // floating inside the thread ("chat within a chat").
+                color: colors.surfaceSecondary,
+                borderRadius: AppRadius.smAll,
+                border: _hasFocus
+                    ? Border.all(color: colors.primary, width: 1.5)
+                    : null,
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,
