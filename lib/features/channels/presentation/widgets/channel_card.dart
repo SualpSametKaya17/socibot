@@ -3,16 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_semantic_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/channel_type.dart';
 import '../../../../core/widgets/app_surface_card.dart';
+import '../../../../core/widgets/app_toggle.dart';
 import '../../../../core/widgets/hover_lift.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../domain/channel_connection.dart';
 import '../../domain/channel_connection_status.dart';
 import '../../domain/channel_providers.dart';
+
+/// A short, honest line of copy for what connecting each channel
+/// actually does — no invented capabilities, just what the inbox
+/// already does with a connected channel's messages.
+String _description(ChannelType type) => switch (type) {
+  ChannelType.whatsapp =>
+    'Receive WhatsApp Business messages and reply to them from this inbox.',
+  ChannelType.instagram =>
+    'Sync Instagram DMs and comments into your shared inbox.',
+  ChannelType.facebook =>
+    'Bring Messenger conversations from your Facebook Page into Socibot.',
+};
 
 /// One channel's connection card. Connect/Disconnect are real, immediate
 /// local actions — see [ChannelsNotifier]'s doc comment for why that's
@@ -41,23 +55,44 @@ class ChannelCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: brandColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                    borderRadius: AppRadius.mdAll,
                   ),
-                  child: Icon(icon, color: brandColor, size: 20),
+                  child: Icon(icon, color: brandColor, size: 22),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Text(
-                    channel.type.label,
-                    style: AppTypography.labelLarge,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        channel.type.label,
+                        style: AppTypography.labelLarge,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        channel.accountName ?? 'Not connected yet',
+                        style: AppTypography.caption.copyWith(
+                          color: channel.accountName != null
+                              ? colors.textSecondary
+                              : colors.textMuted,
+                          fontStyle: channel.accountName != null
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -69,41 +104,124 @@ class ChannelCard extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              channel.accountName ?? 'Not connected yet',
+              _description(channel.type),
               style: AppTypography.bodySmall.copyWith(
-                color: channel.accountName != null
-                    ? colors.textSecondary
-                    : colors.textMuted,
-                fontStyle: channel.accountName != null
-                    ? FontStyle.normal
-                    : FontStyle.italic,
+                color: colors.textSecondary,
               ),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
-            Text(
-              channel.lastSyncAt != null
-                  ? 'Last synced ${DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)}'
-                  : 'Never synced',
-              style: AppTypography.caption.copyWith(color: colors.textMuted),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Icon(Icons.sync, size: 12, color: colors.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  channel.lastSyncAt != null
+                      ? 'Last synced ${DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)}'
+                      : 'Never synced',
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textMuted,
+                  ),
+                ),
+              ],
             ),
-            // Fills whatever room is left so the action button always
-            // lands on the same baseline across every card in the grid,
-            // regardless of how much optional text a given channel has.
+            // Fills whatever room is left so the footer row always lands
+            // on the same baseline across every card in the grid.
             const Spacer(),
             const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => isConnected
-                    ? _confirmDisconnect(context, ref, channel.type)
-                    : _showConnectDialog(context, ref, channel.type),
-                icon: Icon(isConnected ? Icons.link_off : Icons.link, size: 16),
-                label: Text(isConnected ? 'Disconnect' : 'Connect'),
-              ),
+            Divider(height: 1, color: colors.border),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                AppToggle(
+                  value: isConnected,
+                  onChanged: (_) => isConnected
+                      ? _confirmDisconnect(context, ref, channel.type)
+                      : _showConnectDialog(context, ref, channel.type),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  isConnected ? 'Enabled' : 'Disabled',
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                if (isConnected)
+                  OutlinedButton(
+                    onPressed: () => _showChannelDetails(context, channel),
+                    child: const Text('Details'),
+                  ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+Future<void> _showChannelDetails(
+  BuildContext context,
+  ChannelConnection channel,
+) {
+  return showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('${channel.type.label} details'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DetailRow(label: 'Account', value: channel.accountName ?? '—'),
+          _DetailRow(label: 'Status', value: channel.status.label),
+          _DetailRow(
+            label: 'Last synced',
+            value: channel.lastSyncAt != null
+                ? DateFormat.MMMd().add_jm().format(channel.lastSyncAt!)
+                : 'Never',
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 96,
+            child: Text(
+              label,
+              style: AppTypography.caption.copyWith(color: colors.textMuted),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTypography.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

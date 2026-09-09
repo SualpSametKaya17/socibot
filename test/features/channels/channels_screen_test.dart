@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socibot/app/theme/app_theme.dart';
 import 'package:socibot/core/constants/channel_type.dart';
+import 'package:socibot/core/widgets/app_toggle.dart';
 import 'package:socibot/features/channels/presentation/channels_screen.dart';
 import 'package:socibot/features/channels/presentation/widgets/channel_card.dart';
 
@@ -24,16 +25,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  // The mock dataset also seeds Instagram as an errored (not connected)
-  // channel, so "Connect" appears on more than one card — scope every
-  // interaction to Messenger's own card rather than assuming there's only
-  // one match on screen.
-  Finder messengerConnectButton() => find.descendant(
+  // Each channel's on/off state lives in a single AppToggle now — scope
+  // every interaction to one channel's own card rather than assuming
+  // there's only one toggle on screen.
+  Finder channelToggle(ChannelType type) => find.descendant(
     of: find.byWidgetPredicate(
-      (widget) =>
-          widget is ChannelCard && widget.channel.type == ChannelType.facebook,
+      (widget) => widget is ChannelCard && widget.channel.type == type,
     ),
-    matching: find.widgetWithText(OutlinedButton, 'Connect'),
+    matching: find.byType(AppToggle),
   );
 
   testWidgets('Connecting a disconnected channel updates its card', (
@@ -44,7 +43,7 @@ void main() {
     // Messenger starts disconnected in the mock data.
     expect(find.text('Not connected yet'), findsOneWidget);
 
-    await tester.tap(messengerConnectButton());
+    await tester.tap(channelToggle(ChannelType.facebook));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField), 'Socibot Page');
@@ -60,7 +59,7 @@ void main() {
   ) async {
     await pumpChannels(tester);
 
-    await tester.tap(messengerConnectButton());
+    await tester.tap(channelToggle(ChannelType.facebook));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(ElevatedButton, 'Connect'));
@@ -78,12 +77,39 @@ void main() {
     // WhatsApp starts connected in the mock data.
     expect(find.text('Socibot Support (+1 415 555 0100)'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Disconnect').first);
+    await tester.tap(channelToggle(ChannelType.whatsapp));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(FilledButton, 'Disconnect'));
     await tester.pumpAndSettle();
 
     expect(find.text('Socibot Support (+1 415 555 0100)'), findsNothing);
+  });
+
+  testWidgets('Details dialog shows the connected channel\'s info', (
+    tester,
+  ) async {
+    await pumpChannels(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byWidgetPredicate(
+          (widget) =>
+              widget is ChannelCard &&
+              widget.channel.type == ChannelType.whatsapp,
+        ),
+        matching: find.widgetWithText(OutlinedButton, 'Details'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('WhatsApp details'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Socibot Support (+1 415 555 0100)'),
+      ),
+      findsOneWidget,
+    );
   });
 }
